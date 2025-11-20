@@ -1,0 +1,127 @@
+{
+    "common": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "create": "Create",
+        "search": "Search",
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "close": "Close",
+        "confirm": "Confirm",
+        "back": "Back"
+    },
+    "navigation": {
+        "documents": "Documents",
+        "settings": "Settings",
+        "trash": "Trash",
+        "search": "Search",
+        "newPage": "New page",
+        "privateDocuments": "Private documents"
+    },
+    "settings": {
+        "title": "Settings",
+        "description": "Manage your account settings and preferences",
+        "storage": {
+            "title": "Storage",
+            "description": "Manage your storage usage",
+            "used": "Used",
+            "of": "of",
+            "available": "available",
+            "loading": "Loading storage information..."
+        },
+        "dataExport": {
+            "title": "Data & Export",
+            "exportData": "Export Data",
+            "exportDescription": "Download all your notes as a JSON file",
+            "exportButton": "Export All Notes",
+            "importData": "Import Data",
+            "importDescription": "Upload and restore notes from a JSON file",
+            "importButton": "Import Notes",
+            "selectFile": "Select file",
+            "exporting": "Exporting...",
+            "importing": "Importing...",
+            "exportSuccess": "Data exported successfully!",
+            "importSuccess": "Data imported successfully!",
+            "importError": "Failed to import data. Please check the file format."
+        },
+        "profile": {
+            "title": "Profile",
+            "name": "Name",
+            "email": "Email",
+            "updateProfile": "Update Profile",
+            "updating": "Updating..."
+        },
+        "appearance": {
+            "title": "Appearance",
+            "theme": "Theme",
+            "themeDescription": "Choose your preferred theme",
+            "themes": {
+                "light": "Light",
+                "dark": "Dark",
+                "system": "System"
+            },
+            "language": "Language",
+            "languageDescription": "Select your preferred language"
+        },
+        "tabs": {
+            "title": "Tabs",
+            "maxTabs": "Maximum tabs",
+            "maxTabsDescription": "Maximum number of tabs you can open at once",
+            "currentTabs": "Current tabs",
+            "warning": "You have {current} tabs open, exceeding the new limit of {max} tabs. Please close some tabs."
+        },
+        "account": {
+            "title": "Account",
+            "deleteAccount": "Delete Account",
+            "deleteDescription": "Permanently delete your account and all associated data",
+            "deleteButton": "Delete Account",
+            "deleteConfirmTitle": "Are you absolutely sure?",
+            "deleteConfirmDescription": "This action cannot be undone. This will permanently delete your account and remove all your data from our servers.",
+            "deleting": "Deleting..."
+        }
+    },
+    "document": {
+        "untitled": "Untitled",
+        "newDocument": "New Document",
+        "search": "Search documents...",
+        "noResults": "No results found",
+        "emptyTrash": "Empty Trash",
+        "restore": "Restore",
+        "deletePermanently": "Delete permanently",
+        "confirmDelete": "Delete permanently?",
+        "confirmDeleteDescription": "This action cannot be undone.",
+        "addIcon": "Add icon",
+        "changeIcon": "Change icon",
+        "removeIcon": "Remove icon",
+        "addCover": "Add cover",
+        "changeCover": "Change cover",
+        "removeCover": "Remove cover",
+        "publish": "Publish",
+        "unpublish": "Unpublish",
+        "copyLink": "Copy link"
+    },
+    "editor": {
+        "placeholder": "Start typing...",
+        "untitledPlaceholder": "Untitled"
+    },
+    "auth": {
+        "signIn": "Sign in",
+        "signUp": "Sign up",
+        "signOut": "Sign out",
+        "welcome": "Welcome to NoteFlow"
+    },
+    "errors": {
+        "somethingWentWrong": "Something went wrong",
+        "tryAgain": "Please try again",
+        "notFound": "Page not found",
+        "unauthorized": "Unauthorized",
+        "forbidden": "Forbidden"
+    },
+    "languages": {
+        "en": "English",
+        "vi": "Tiếng Việt"
+    }
+}

@@ -1,0 +1,127 @@
+{
+    "common": {
+        "save": "Lưu",
+        "cancel": "Hủy",
+        "delete": "Xóa",
+        "edit": "Chỉnh sửa",
+        "create": "Tạo",
+        "search": "Tìm kiếm",
+        "loading": "Đang tải...",
+        "error": "Lỗi",
+        "success": "Thành công",
+        "close": "Đóng",
+        "confirm": "Xác nhận",
+        "back": "Quay lại"
+    },
+    "navigation": {
+        "documents": "Tài liệu",
+        "settings": "Cài đặt",
+        "trash": "Thùng rác",
+        "search": "Tìm kiếm",
+        "newPage": "Trang mới",
+        "privateDocuments": "Tài liệu riêng tư"
+    },
+    "settings": {
+        "title": "Cài đặt",
+        "description": "Quản lý cài đặt tài khoản và tùy chọn của bạn",
+        "storage": {
+            "title": "Dung lượng",
+            "description": "Quản lý dung lượng lưu trữ của bạn",
+            "used": "Đã sử dụng",
+            "of": "trong số",
+            "available": "có sẵn",
+            "loading": "Đang tải thông tin dung lượng..."
+        },
+        "dataExport": {
+            "title": "Dữ liệu & Xuất",
+            "exportData": "Xuất Dữ liệu",
+            "exportDescription": "Tải xuống tất cả ghi chú của bạn dưới dạng tệp JSON",
+            "exportButton": "Xuất Tất cả Ghi chú",
+            "importData": "Nhập Dữ liệu",
+            "importDescription": "Tải lên và khôi phục ghi chú từ tệp JSON",
+            "importButton": "Nhập Ghi chú",
+            "selectFile": "Chọn tệp",
+            "exporting": "Đang xuất...",
+            "importing": "Đang nhập...",
+            "exportSuccess": "Xuất dữ liệu thành công!",
+            "importSuccess": "Nhập dữ liệu thành công!",
+            "importError": "Không thể nhập dữ liệu. Vui lòng kiểm tra định dạng tệp."
+        },
+        "profile": {
+            "title": "Hồ sơ",
+            "name": "Tên",
+            "email": "Email",
+            "updateProfile": "Cập nhật Hồ sơ",
+            "updating": "Đang cập nhật..."
+        },
+        "appearance": {
+            "title": "Giao diện",
+            "theme": "Chủ đề",
+            "themeDescription": "Chọn chủ đề bạn thích",
+            "themes": {
+                "light": "Sáng",
+                "dark": "Tối",
+                "system": "Hệ thống"
+            },
+            "language": "Ngôn ngữ",
+            "languageDescription": "Chọn ngôn ngữ bạn muốn"
+        },
+        "tabs": {
+            "title": "Tabs",
+            "maxTabs": "Số lượng tab tối đa",
+            "maxTabsDescription": "Số lượng tab tối đa bạn có thể mở cùng lúc",
+            "currentTabs": "Tabs hiện tại",
+            "warning": "Bạn đang mở {current} tabs, vượt quá giới hạn mới là {max} tabs. Vui lòng đóng bớt tabs."
+        },
+        "account": {
+            "title": "Tài khoản",
+            "deleteAccount": "Xóa Tài khoản",
+            "deleteDescription": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu liên quan",
+            "deleteButton": "Xóa Tài khoản",
+            "deleteConfirmTitle": "Bạn có chắc chắn không?",
+            "deleteConfirmDescription": "Hành động này không thể hoàn tác. Điều này sẽ xóa vĩnh viễn tài khoản của bạn và loại bỏ tất cả dữ liệu khỏi máy chủ.",
+            "deleting": "Đang xóa..."
+        }
+    },
+    "document": {
+        "untitled": "Không có tiêu đề",
+        "newDocument": "Tài liệu Mới",
+        "search": "Tìm kiếm tài liệu...",
+        "noResults": "Không tìm thấy kết quả",
+        "emptyTrash": "Làm trống Thùng rác",
+        "restore": "Khôi phục",
+        "deletePermanently": "Xóa vĩnh viễn",
+        "confirmDelete": "Xóa vĩnh viễn?",
+        "confirmDeleteDescription": "Hành động này không thể hoàn tác.",
+        "addIcon": "Thêm biểu tượng",
+        "changeIcon": "Đổi biểu tượng",
+        "removeIcon": "Xóa biểu tượng",
+        "addCover": "Thêm ảnh bìa",
+        "changeCover": "Đổi ảnh bìa",
+        "removeCover": "Xóa ảnh bìa",
+        "publish": "Xuất bản",
+        "unpublish": "Hủy xuất bản",
+        "copyLink": "Sao chép liên kết"
+    },
+    "editor": {
+        "placeholder": "Bắt đầu nhập...",
+        "untitledPlaceholder": "Không có tiêu đề"
+    },
+    "auth": {
+        "signIn": "Đăng nhập",
+        "signUp": "Đăng ký",
+        "signOut": "Đăng xuất",
+        "welcome": "Chào mừng đến với NoteFlow"
+    },
+    "errors": {
+        "somethingWentWrong": "Đã xảy ra lỗi",
+        "tryAgain": "Vui lòng thử lại",
+        "notFound": "Không tìm thấy trang",
+        "unauthorized": "Không được phép",
+        "forbidden": "Bị cấm"
+    },
+    "languages": {
+        "en": "English",
+        "vi": "Tiếng Việt"
+    }
+}
