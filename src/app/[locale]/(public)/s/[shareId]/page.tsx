@@ -49,6 +49,13 @@ const SharePage = ({ params }: SharePageProps) => {
         }
     }, [canComment]);
 
+    // Update window title
+    useEffect(() => {
+        if (document?.title) {
+            window.document.title = `${document.title} - Nova`;
+        }
+    }, [document?.title]);
+
     const handleSaveName = () => {
         if (userName.trim()) {
             localStorage.setItem("anonymousUserName", userName.trim());

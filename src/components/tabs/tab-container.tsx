@@ -64,7 +64,10 @@ export function TabContainer() {
                         display: activeTabId === tab.id ? "block" : "none",
                     }}
                 >
-                    <DocumentContent documentId={tab.id as Id<"documents">} />
+                    <DocumentContent
+                        documentId={tab.id as Id<"documents">}
+                        isActive={activeTabId === tab.id}
+                    />
                 </div>
             ))}
         </div>

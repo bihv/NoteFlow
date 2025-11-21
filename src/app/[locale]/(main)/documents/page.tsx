@@ -47,7 +47,7 @@ const DocumentsPage = () => {
                     {/* Main heading */}
                     <div className="text-center space-y-4 animate-fade-in-up animation-delay-100">
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold gradient-text">
-                            Welcome to {user?.firstName}&apos;s NoteFlow
+                            Welcome to {user?.firstName}&apos;s Nova
                         </h1>
                         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
                             Your beautiful workspace for capturing ideas, organizing thoughts, and collaborating seamlessly.

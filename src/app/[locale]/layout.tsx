@@ -12,7 +12,7 @@ import { getMessages } from 'next-intl/server';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "NoteFlow - Block-based Knowledge Management",
+    title: "Nova - Block-based Knowledge Management",
     description: "A modern note-taking app with block-based editing, similar to Notion",
     icons: {
         icon: "/favicon.ico",
@@ -40,7 +40,7 @@ export default async function LocaleLayout({
                                 defaultTheme="system"
                                 enableSystem
                                 disableTransitionOnChange
-                                storageKey="noteflow-theme"
+                                storageKey="nova-theme"
                             >
                                 <Toaster position="bottom-center" />
                                 {children}

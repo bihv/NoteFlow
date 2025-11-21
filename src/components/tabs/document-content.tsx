@@ -16,9 +16,10 @@ import { SelectionAIButton } from "@/components/ai/selection-ai-button";
 
 interface DocumentContentProps {
     documentId: Id<"documents">;
+    isActive?: boolean;
 }
 
-function DocumentContentComponent({ documentId }: DocumentContentProps) {
+function DocumentContentComponent({ documentId, isActive }: DocumentContentProps) {
     const { updateTab } = useTabs();
     const prevDocumentRef = useRef<{ title: string; icon?: string } | null>(null);
 
@@ -45,6 +46,13 @@ function DocumentContentComponent({ documentId }: DocumentContentProps) {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [document?.title, document?.icon, documentId]);
+
+    // Update window title when active
+    useEffect(() => {
+        if (isActive && document?.title) {
+            window.document.title = `${document.title} - Nova`;
+        }
+    }, [isActive, document?.title]);
 
     // Detect text selection
     useEffect(() => {
