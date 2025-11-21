@@ -1,15 +1,18 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { useEffect, useRef, useCallback, memo } from "react";
+import { useEffect, useRef, useCallback, memo, useState } from "react";
 
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Toolbar } from "@/app/[locale]/(main)/documents/[documentId]/toolbar";
 import { Cover } from "@/app/[locale]/(main)/documents/[documentId]/cover";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Editor } from "@/components/editor-client";
+import { Editor } from "@/components/editor";
 import { useTabs } from "@/contexts/tabs-context";
+import { AIChatPanel } from "@/components/ai/ai-chat-panel";
+import { FloatingAIButton } from "@/components/ai/floating-ai-button";
+import { SelectionAIButton } from "@/components/ai/selection-ai-button";
 
 interface DocumentContentProps {
     documentId: Id<"documents">;
@@ -24,6 +27,9 @@ function DocumentContentComponent({ documentId }: DocumentContentProps) {
     });
 
     const update = useMutation(api.documents.update);
+    const [showAIChat, setShowAIChat] = useState(false);
+    const [selectedText, setSelectedText] = useState<string>("");
+    const [aiContextText, setAiContextText] = useState<string>(""); // Text to pass to AI chat
 
     // Update tab when document data changes (but avoid redundant updates)
     useEffect(() => {
@@ -39,6 +45,36 @@ function DocumentContentComponent({ documentId }: DocumentContentProps) {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [document?.title, document?.icon, documentId]);
+
+    // Detect text selection
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const handleSelectionChange = () => {
+            const selection = window.getSelection();
+            const text = selection?.toString().trim();
+            if (text && text.length > 0) {
+                setSelectedText(text);
+            } else {
+                setSelectedText(""); // Clear selection if nothing is selected
+            }
+        };
+
+        window.document.addEventListener("selectionchange", handleSelectionChange);
+        return () => {
+            window.document.removeEventListener("selectionchange", handleSelectionChange);
+        };
+    }, []);
+
+    // Handler to open AI chat with selected text
+    const handleOpenAIChat = useCallback(() => {
+        setAiContextText(selectedText); // Save current selection for AI
+        setShowAIChat(true);
+
+        // Clear selection to hide the Ask AI button
+        setSelectedText("");
+        window.getSelection()?.removeAllRanges();
+    }, [selectedText]);
 
     const onChange = useCallback((content: string) => {
         update({
@@ -68,7 +104,7 @@ function DocumentContentComponent({ documentId }: DocumentContentProps) {
     }
 
     return (
-        <div className="pb-40">
+        <div className={`pb-40 transition-all duration-300 ${showAIChat ? 'pr-96' : ''}`}>
             <Cover url={document.coverImage} />
             <div className="md:max-w-3xl lg:max-w-4xl mx-auto">
                 <Toolbar initialData={document} />
@@ -78,6 +114,26 @@ function DocumentContentComponent({ documentId }: DocumentContentProps) {
                     editable={true}
                 />
             </div>
+
+            {/* AI Features */}
+            <AIChatPanel
+                isOpen={showAIChat}
+                onClose={() => {
+                    setShowAIChat(false);
+                    setAiContextText(""); // Clear AI context when closing
+                }}
+                documentContent={document.content}
+                documentTitle={document.title}
+                selectedText={aiContextText}
+                onClearSelection={() => setAiContextText("")}
+            />
+            <FloatingAIButton onClick={handleOpenAIChat} />
+
+            {/* Ask AI about selection button - appears at selection position */}
+            <SelectionAIButton
+                selectedText={selectedText}
+                onClick={handleOpenAIChat}
+            />
         </div>
     );
 }

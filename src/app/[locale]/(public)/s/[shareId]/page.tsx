@@ -5,8 +5,9 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Editor } from "@/components/editor-client";
+import { Editor } from "@/components/editor";
 import { Cover } from "@/app/[locale]/(main)/documents/[documentId]/cover";
+import { Toolbar } from "@/app/[locale]/(main)/documents/[documentId]/toolbar";
 import { toast } from "sonner";
 import { CommentSidebar } from "@/components/comments/comment-sidebar";
 import { AddCommentButton } from "@/components/comments/add-comment-button";
@@ -198,17 +199,10 @@ const SharePage = ({ params }: SharePageProps) => {
             {/* Main content - independent scroll */}
             <div className="flex-1 overflow-y-auto">
                 <div className="pb-40">
-                    <Cover url={document.coverImage} preview />
+                    <Cover url={document.coverImage} preview={!isEditable} />
                     <div className="md:max-w-3xl lg:max-w-4xl mx-auto">
                         {/* Document Header */}
-                        <div className="pl-[54px] pt-6">
-                            {document.icon && (
-                                <p className="text-6xl mb-4">{document.icon}</p>
-                            )}
-                            <h1 className="text-5xl font-bold break-words text-[#3F3F3F] dark:text-[#CFCFCF]">
-                                {document.title}
-                            </h1>
-                        </div>
+                        <Toolbar initialData={document} preview={!isEditable} />
 
                         {/* Editor with permission-based editability */}
                         <div id="editor-container">

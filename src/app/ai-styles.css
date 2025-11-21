@@ -1,0 +1,179 @@
+/* AI-specific styles and animations */
+
+/* Sparkle animation for AI elements */
+@keyframes sparkle {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.1);
+    }
+}
+
+.ai-sparkle {
+    animation: sparkle 2s ease-in-out infinite;
+}
+
+/* Gradient text for AI branding */
+.ai-gradient-text {
+    background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* AI panel glassmorphic effect */
+.ai-panel-glass {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .ai-panel-glass {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* AI loading pulse animation */
+@keyframes ai-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.ai-loading {
+    animation: ai-pulse 1.5s ease-in-out infinite;
+}
+
+/* Gradient border for AI containers */
+.ai-gradient-border {
+    position: relative;
+}
+
+.ai-gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg, #9333ea, #ec4899);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+}
+
+/* Shimmer effect for AI buttons */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.ai-shimmer {
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+/* AI message typing indicator */
+@keyframes typing {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+.ai-typing-dot {
+    animation: typing 1.4s ease-in-out infinite;
+}
+
+.ai-typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.ai-typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+/* Smooth slide-in animation for panels */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.ai-slide-in {
+    animation: slideInRight 0.3s ease-out;
+}
+
+/* AI feature badge */
+.ai-badge {
+    background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* AI button hover glow effect */
+.ai-button-glow {
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-button-glow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center,
+            rgba(147, 51, 234, 0.3),
+            transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.ai-button-glow:hover::after {
+    opacity: 1;
+}
+
+/* Responsive AI panel width */
+@media (max-width: 768px) {
+    .ai-chat-panel {
+        width: 100vw;
+    }
+}

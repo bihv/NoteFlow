@@ -19,6 +19,10 @@ export default defineSchema({
             v.union(v.literal("view"), v.literal("comment"), v.literal("edit"))
         ),
         shareExpiration: v.optional(v.number()), // Timestamp
+        // AI-related fields
+        tags: v.optional(v.array(v.string())),
+        summary: v.optional(v.string()),
+        aiMetadata: v.optional(v.any()), // For extensibility (last generation time, etc.)
     })
         .index("by_user", ["userId"])
         .index("by_user_parent", ["userId", "parentDocument"])

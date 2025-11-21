@@ -217,6 +217,8 @@ export const update = mutation({
         coverImage: v.optional(v.string()),
         icon: v.optional(v.string()),
         isPublished: v.optional(v.boolean()),
+        tags: v.optional(v.array(v.string())),
+        summary: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
@@ -546,7 +548,7 @@ export const resolveComment = mutation({
     },
     handler: async (ctx, args) => {
         const comment = await ctx.db.get(args.commentId);
-        
+
         if (!comment) {
             throw new Error("Comment not found");
         }
@@ -568,7 +570,7 @@ export const deleteComment = mutation({
     },
     handler: async (ctx, args) => {
         const comment = await ctx.db.get(args.commentId);
-        
+
         if (!comment) {
             throw new Error("Comment not found");
         }

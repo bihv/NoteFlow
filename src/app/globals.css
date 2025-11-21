@@ -162,6 +162,15 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* BlockNote Editor styling - ensure background matches page in dark mode */
+  .dark .bn-container {
+    background: hsl(var(--background));
+  }
+
+  .dark .bn-editor {
+    background: hsl(var(--background));
+  }
 }
 
 /* Animation keyframes */

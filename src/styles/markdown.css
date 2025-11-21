@@ -1,0 +1,85 @@
+/* Prism.js Syntax Highlighting Styles */
+/* Base theme for code blocks */
+
+/* Import Prism theme */
+@import 'prismjs/themes/prism-tomorrow.css';
+
+/* Custom markdown styles */
+.markdown-content {
+    @apply text-sm;
+}
+
+.markdown-content h1 {
+    @apply text-xl font-bold mt-4 mb-2;
+}
+
+.markdown-content h2 {
+    @apply text-lg font-bold mt-3 mb-2;
+}
+
+.markdown-content h3 {
+    @apply text-base font-semibold mt-2 mb-1;
+}
+
+.markdown-content p {
+    @apply my-2 leading-relaxed;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    @apply my-2 ml-4;
+}
+
+.markdown-content li {
+    @apply my-1;
+}
+
+.markdown-content pre {
+    @apply my-3 rounded-lg overflow-x-auto;
+}
+
+.markdown-content code {
+    @apply font-mono text-xs;
+}
+
+.markdown-content pre code {
+    @apply text-xs;
+}
+
+.markdown-content strong {
+    @apply font-semibold;
+}
+
+.markdown-content em {
+    @apply italic;
+}
+
+.markdown-content hr {
+    @apply my-4 border-border;
+}
+
+/* Override Prism background for dark mode */
+.dark .markdown-content pre[class*="language-"] {
+    @apply bg-zinc-950;
+}
+
+.markdown-content pre[class*="language-"] {
+    @apply bg-zinc-900;
+}
+
+/* Custom scrollbar for code blocks */
+.markdown-content pre::-webkit-scrollbar {
+    height: 8px;
+}
+
+.markdown-content pre::-webkit-scrollbar-track {
+    @apply bg-zinc-800 rounded;
+}
+
+.markdown-content pre::-webkit-scrollbar-thumb {
+    @apply bg-zinc-600 rounded;
+}
+
+.markdown-content pre::-webkit-scrollbar-thumb:hover {
+    @apply bg-zinc-500;
+}
