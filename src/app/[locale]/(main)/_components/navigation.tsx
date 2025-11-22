@@ -178,7 +178,7 @@ export const Navigation = () => {
             <aside
                 ref={sidebarRef}
                 className={cn(
-                    "group/sidebar fixed left-0 top-0 h-screen sidebar-glass sidebar-scrollbar overflow-y-auto flex w-60 flex-col z-[999] border-r border-border/50 shadow-2xl",
+                    "group/sidebar fixed left-0 top-0 h-screen sidebar-glass sidebar-scrollbar overflow-y-auto flex w-60 flex-col z-999 border-r border-border/50 shadow-2xl",
                     isResetting && "transition-all ease-in-out duration-300",
                     isMobile && "w-0"
                 )}
@@ -206,7 +206,7 @@ export const Navigation = () => {
                                 placeholder="Search (Ctrl+K)"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-9 py-2 text-sm bg-accent/30 hover:bg-accent/50 focus:bg-accent/50 border-none rounded-md text-foreground placeholder:text-muted-foreground outline-none transition-all duration-200 notion-focus"
+                                className="w-full pl-9 pr-9 py-2 text-sm bg-accent/30 hover:bg-accent/50 focus:bg-accent/50 border-none rounded-md text-foreground placeholder:text-muted-foreground outline-hidden transition-all duration-200 notion-focus"
                             />
                             {searchQuery && (
                                 <button
@@ -287,13 +287,13 @@ export const Navigation = () => {
                 <div
                     onMouseDown={handleMouseDown}
                     onClick={resetWidth}
-                    className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200 cursor-ew-resize absolute h-full w-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent hover:via-primary/40 right-0 top-0"
+                    className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-200 cursor-ew-resize absolute h-full w-1 bg-linear-to-r from-transparent via-primary/20 to-transparent hover:via-primary/40 right-0 top-0"
                 />
             </aside>
             <div
                 ref={navbarRef}
                 className={cn(
-                    "absolute top-0 z-[99999] left-60 w-[calc(100%-240px)]",
+                    "absolute top-0 z-99999 left-60 w-[calc(100%-240px)]",
                     isResetting && "transition-all ease-in-out duration-300",
                     isMobile && "left-0 w-full"
                 )}

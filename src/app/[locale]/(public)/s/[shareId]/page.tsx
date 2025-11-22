@@ -183,7 +183,7 @@ const SharePage = ({ params }: SharePageProps) => {
         <div className="h-screen flex overflow-hidden">
             {/* Name prompt modal */}
             {showNamePrompt && (
-                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-xs z-50 flex items-center justify-center">
                     <div className="bg-card p-6 rounded-lg shadow-lg max-w-md w-full">
                         <h3 className="text-lg font-semibold mb-4">Enter your name</h3>
                         <p className="text-sm text-muted-foreground mb-4">

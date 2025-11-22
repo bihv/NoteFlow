@@ -137,7 +137,7 @@ export const TagsModal = ({
                         <Button
                             onClick={handleAddTag}
                             size="icon"
-                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                            className="bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
                         >
                             <Plus className="h-4 w-4" />
                         </Button>

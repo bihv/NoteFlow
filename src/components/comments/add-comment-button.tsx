@@ -126,7 +126,7 @@ export function AddCommentButton({
 
     return (
         <div
-            className="fixed z-[100]"
+            className="fixed z-100"
             style={{
                 left: `${buttonPosition.x}px`,
                 top: `${buttonPosition.y}px`,

@@ -54,7 +54,7 @@ export const SelectionAIButton = ({ selectedText, onClick }: SelectionAIButtonPr
     return (
         <button
             onClick={onClick}
-            className="fixed px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center gap-1.5 animate-in fade-in slide-in-from-right-2"
+            className="fixed px-3 py-2 bg-linear-to-r from-purple-500 to-pink-500 text-white text-xs font-medium rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center gap-1.5 animate-in fade-in slide-in-from-right-2"
             style={{
                 top: `${position.top}px`,
                 left: `${position.left}px`,

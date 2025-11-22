@@ -274,14 +274,14 @@ export const Editor = ({ onChange, initialContent, editable }: EditorProps) => {
     // AI slash menu items (only outline, template, custom - expand/improve/continue moved to formatting toolbar)
     const getAISlashMenuItems = (editor: BlockNoteEditor) => [
         {
-            title: "Create outline",
+            title: "Create outline-solid",
             onItemClick: () => {
                 editorRef.current = editor;
                 setShowOutlineDialog(true);
             },
-            subtext: "Generate outline from topic",
+            subtext: "Generate outline-solid from topic",
             group: "AI Assistant",
-            aliases: ["ai", "outline", "structure"],
+            aliases: ["ai", "outline-solid", "structure"],
         },
         {
             title: "Insert template",

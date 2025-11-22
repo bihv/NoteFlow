@@ -39,7 +39,7 @@ const DocumentsPage = () => {
                 <div className="glass-card rounded-3xl p-8 md:p-12 max-w-3xl w-full space-y-8 animate-scale-in">
                     {/* Sparkle icon */}
                     <div className="flex justify-center animate-fade-in-up">
-                        <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm">
+                        <div className="p-4 rounded-2xl bg-linear-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-xs">
                             <Sparkles className="h-12 w-12 text-purple-600 dark:text-purple-400" />
                         </div>
                     </div>
@@ -68,7 +68,7 @@ const DocumentsPage = () => {
 
                     {/* Feature highlights */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 animate-fade-in-up animation-delay-300">
-                        <div className="feature-card p-4 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-sm text-center space-y-2 border border-white/20">
+                        <div className="feature-card p-4 rounded-xl backdrop-blur-xs text-center space-y-2 border border-white/20">
                             <div className="flex justify-center">
                                 <Zap className="h-6 w-6 text-purple-600 dark:text-purple-300" />
                             </div>
@@ -78,7 +78,7 @@ const DocumentsPage = () => {
                             </p>
                         </div>
 
-                        <div className="feature-card p-4 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-sm text-center space-y-2 border border-white/20">
+                        <div className="feature-card p-4 rounded-xl backdrop-blur-xs text-center space-y-2 border border-white/20">
                             <div className="flex justify-center">
                                 <Sparkles className="h-6 w-6 text-blue-600 dark:text-blue-300" />
                             </div>
@@ -88,7 +88,7 @@ const DocumentsPage = () => {
                             </p>
                         </div>
 
-                        <div className="feature-card p-4 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-sm text-center space-y-2 border border-white/20">
+                        <div className="feature-card p-4 rounded-xl backdrop-blur-xs text-center space-y-2 border border-white/20">
                             <div className="flex justify-center">
                                 <Users className="h-6 w-6 text-pink-600 dark:text-pink-300" />
                             </div>

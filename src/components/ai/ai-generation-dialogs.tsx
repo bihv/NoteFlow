@@ -97,7 +97,7 @@ export const OutlineDialog = ({ isOpen, onClose, onInsert }: OutlineDialogProps)
                     </div>
 
                     {generatedContent && (
-                        <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto break-words">
+                        <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto wrap-break-word">
                             <MarkdownRenderer content={generatedContent} />
                         </div>
                     )}
@@ -260,7 +260,7 @@ export const TemplateDialog = ({ isOpen, onClose, onInsert }: TemplateDialogProp
                                         className="p-4 border-2 rounded-lg text-left transition-all hover:border-purple-500 border-gray-200"
                                     >
                                         <div className="flex items-start gap-3">
-                                            <Icon className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                                            <Icon className="h-5 w-5 text-purple-600 shrink-0 mt-0.5" />
                                             <div>
                                                 <h3 className="font-semibold text-sm mb-1">{template.title}</h3>
                                                 <p className="text-xs text-muted-foreground">{template.description}</p>
@@ -299,7 +299,7 @@ export const TemplateDialog = ({ isOpen, onClose, onInsert }: TemplateDialogProp
                                 <select
                                     value={language}
                                     onChange={(e) => setLanguage(e.target.value as 'auto' | 'vi' | 'en')}
-                                    className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                    className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                 >
                                     <option value="auto">Auto-detect</option>
                                     <option value="vi">Tiếng Việt</option>
@@ -322,7 +322,7 @@ export const TemplateDialog = ({ isOpen, onClose, onInsert }: TemplateDialogProp
                     {/* Step 3: Preview Generated Content */}
                     {step === 'preview' && (
                         <div className="space-y-4">
-                            <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto break-words">
+                            <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto wrap-break-word">
                                 {generatedContent ? (
                                     <MarkdownRenderer content={generatedContent} />
                                 ) : (
@@ -461,7 +461,7 @@ export const CustomPromptDialog = ({ isOpen, onClose, onInsert, selectedText }: 
                     )}
 
                     {generatedContent && (
-                        <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto break-words">
+                        <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto wrap-break-word">
                             <MarkdownRenderer content={generatedContent} />
                         </div>
                     )}

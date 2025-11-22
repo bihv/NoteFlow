@@ -18,7 +18,7 @@
     "@blocknote/core": "^0.42.3",
     "@blocknote/mantine": "^0.42.3",
     "@blocknote/react": "^0.42.3",
-    "@clerk/nextjs": "^6.35.2",
+    "@clerk/nextjs": "^6.35.4",
     "@google/generative-ai": "^0.24.1",
     "@mantine/core": "^8.3.8",
     "@mantine/hooks": "^8.3.8",
@@ -60,14 +60,14 @@
     "usehooks-ts": "^3.1.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.6",
     "@types/react-dom": "^19.2.3",
-    "autoprefixer": "^10.4.22",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.3",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.18",
+    "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3"
   }
 }

@@ -19,7 +19,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
                     code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || "");
                         return !inline ? (
-                            <pre className={`${className} rounded-lg !bg-zinc-900 dark:!bg-zinc-950 p-4 overflow-x-auto`}>
+                            <pre className={`${className} rounded-lg bg-zinc-900! dark:bg-zinc-950! p-4 overflow-x-auto`}>
                                 <code className={className} {...props}>
                                     {children}
                                 </code>

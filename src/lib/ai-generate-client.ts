@@ -2,7 +2,7 @@
  * Client-side wrapper for /api/ai/generate with SSE streaming support
  */
 
-export type GenerationType = 'expand' | 'improve' | 'continue' | 'outline' | 'template' | 'custom';
+export type GenerationType = 'expand' | 'improve' | 'continue' | 'outline-solid' | 'template' | 'custom';
 
 export interface GenerateOptions {
     context?: string;
@@ -162,7 +162,7 @@ export function createOutline(
     callbacks: GenerateCallbacks,
     abortSignal?: AbortSignal
 ) {
-    return generateContent('outline', { prompt: topic }, callbacks, abortSignal);
+    return generateContent('outline-solid', { prompt: topic }, callbacks, abortSignal);
 }
 
 /**

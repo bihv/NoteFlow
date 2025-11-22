@@ -127,7 +127,7 @@ export const SelectionAIDialog = ({ isOpen, onClose, onInsert, type, selectedTex
                             <p className="text-xs font-semibold text-muted-foreground mb-2">
                                 {isGenerating ? "Generating..." : "Generated Content:"}
                             </p>
-                            <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto break-words">
+                            <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto wrap-break-word">
                                 {generatedContent ? (
                                     <MarkdownRenderer content={generatedContent} />
                                 ) : (

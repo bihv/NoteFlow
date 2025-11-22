@@ -119,7 +119,7 @@ export function TabBar() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="flex-shrink-0 h-full rounded-none px-2 hover:bg-white/5 border-r border-white/5"
+                            className="shrink-0 h-full rounded-none px-2 hover:bg-white/5 border-r border-white/5"
                             onClick={() => scrollTabs("left")}
                             aria-label="Scroll tabs left"
                         >
@@ -156,7 +156,7 @@ export function TabBar() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="flex-shrink-0 h-full rounded-none px-2 hover:bg-white/5 border-l border-white/5"
+                            className="shrink-0 h-full rounded-none px-2 hover:bg-white/5 border-l border-white/5"
                             onClick={() => scrollTabs("right")}
                             aria-label="Scroll tabs right"
                         >
@@ -169,7 +169,7 @@ export function TabBar() {
                 <Button
                     variant="ghost"
                     size="sm"
-                    className="flex-shrink-0 h-full rounded-none px-3 hover:bg-white/5 border-l border-white/10"
+                    className="shrink-0 h-full rounded-none px-3 hover:bg-white/5 border-l border-white/10"
                     onClick={handleNewTab}
                     aria-label="New tab"
                 >

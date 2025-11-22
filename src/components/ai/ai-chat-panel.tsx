@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { X, Send, Sparkles, Copy, FileText, Trash2 } from "lucide-react";
+import { X, Send, Sparkles, Copy, FileText, Trash2, Bot, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -78,16 +78,15 @@ export const AIChatPanel = ({
         setMessages((prev) => [...prev, userMessage]);
         setInput("");
         setIsLoading(true);
-        setLastFailedMessage(null); // Clear any previous failed message
+        setLastFailedMessage(null);
 
-        // Clear selected text after first message so subsequent messages use full doc context
         if (selectedText && onClearSelection) {
             onClearSelection();
         }
 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), 60000);
 
             const response = await fetch("/api/ai/chat", {
                 method: "POST",
@@ -96,7 +95,6 @@ export const AIChatPanel = ({
                 },
                 body: JSON.stringify({
                     message: messageText,
-                    // Use selectedText as context if available, otherwise use full document
                     documentContent: selectedText || documentContent,
                     documentTitle,
                     history: messages.map((msg) => ({
@@ -115,13 +113,11 @@ export const AIChatPanel = ({
                     const error = await response.json();
                     errorMessage = error.error || errorMessage;
                 } catch {
-                    // If can't parse error JSON, use status text
                     errorMessage = `Server error: ${response.status} ${response.statusText}`;
                 }
                 throw new Error(errorMessage);
             }
 
-            // Handle streaming response
             const reader = response.body?.getReader();
             if (!reader) {
                 throw new Error("No response body available");
@@ -131,7 +127,6 @@ export const AIChatPanel = ({
             let assistantMessage = "";
             const assistantId = (Date.now() + 1).toString();
 
-            // Add placeholder message
             setMessages((prev) => [
                 ...prev,
                 {
@@ -142,7 +137,7 @@ export const AIChatPanel = ({
                 },
             ]);
 
-            let buffer = ""; // Buffer for incomplete lines
+            let buffer = "";
 
             while (true) {
                 try {
@@ -152,9 +147,7 @@ export const AIChatPanel = ({
                     const chunk = decoder.decode(value, { stream: true });
                     buffer += chunk;
 
-                    // Process complete lines
                     const lines = buffer.split("\n");
-                    // Keep the last incomplete line in buffer
                     buffer = lines.pop() || "";
 
                     for (const line of lines) {
@@ -176,7 +169,6 @@ export const AIChatPanel = ({
 
                                 if (parsed.chunk) {
                                     assistantMessage += parsed.chunk;
-                                    // Update the message in real-time
                                     setMessages((prev) =>
                                         prev.map((msg) =>
                                             msg.id === assistantId
@@ -186,7 +178,6 @@ export const AIChatPanel = ({
                                     );
                                 }
                             } catch (parseError: any) {
-                                // Only log parse errors, don't break the stream
                                 console.warn("Failed to parse SSE data:", data, parseError.message);
                             }
                         }
@@ -200,7 +191,6 @@ export const AIChatPanel = ({
                 }
             }
 
-            // If no content was received, show error
             if (!assistantMessage.trim()) {
                 throw new Error("No response received from AI");
             }
@@ -216,12 +206,10 @@ export const AIChatPanel = ({
                 errorMessage = error.message;
             }
 
-            // Save the failed message for retry
             setLastFailedMessage(messageText);
 
             toast.error(errorMessage);
 
-            // Mark the assistant message as error instead of removing it
             setMessages((prev) => {
                 const lastMessage = prev[prev.length - 1];
                 if (lastMessage?.role === "assistant" && !lastMessage?.content) {
@@ -240,7 +228,6 @@ export const AIChatPanel = ({
 
     const handleRetry = () => {
         if (lastFailedMessage) {
-            // Remove the error message before retrying
             setMessages((prev) => prev.filter(msg => !msg.isError));
             sendMessage(lastFailedMessage);
         }
@@ -284,43 +271,141 @@ export const AIChatPanel = ({
         toast.success("Chat history cleared");
     };
 
+    const handleDownloadChat = () => {
+        if (messages.length === 0) {
+            toast.error("No chat history to download");
+            return;
+        }
+
+        try {
+            // Format chat as markdown
+            let markdown = `# AI Chat History\n\n`;
+            markdown += `**Document**: ${documentTitle || "Untitled"}\n`;
+            markdown += `**Date**: ${new Date().toLocaleString()}\n\n`;
+            markdown += `---\n\n`;
+
+            messages.forEach((msg) => {
+                const role = msg.role === "user" ? "👤 You" : "🤖 AI Assistant";
+                const timestamp = new Date(msg.timestamp).toLocaleTimeString();
+                markdown += `### ${role} (${timestamp})\n\n`;
+                markdown += `${msg.content}\n\n`;
+            });
+
+            // Create and download file
+            const blob = new Blob([markdown], { type: "text/markdown" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            const filename = `chat-${documentTitle?.replace(/[^a-z0-9]/gi, '-').toLowerCase() || 'history'}-${Date.now()}.md`;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            toast.success("Chat history downloaded!");
+        } catch (error) {
+            console.error("Download error:", error);
+            toast.error("Failed to download chat history");
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
-        <div className="fixed right-0 top-0 h-full w-96 bg-background border-l shadow-2xl flex flex-col z-50 overscroll-contain">
+        <div className="fixed right-0 top-0 h-full w-96 bg-background/95 backdrop-blur-xl border-l border-purple-500/20 shadow-2xl flex flex-col z-50 overscroll-contain">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-purple-500/10 to-pink-500/10">
-                <div className="flex items-center gap-2">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20">
-                        <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <div className="relative p-4 border-b border-purple-500/20 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-purple-500/10 backdrop-blur-sm">
+                {/* Animated gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 animate-pulse"></div>
+
+                <div className="relative flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        {/* AI Avatar with gradient border animation */}
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur-sm opacity-75 animate-pulse"></div>
+                            <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg">
+                                <Bot className="h-5 w-5 text-white" />
+                            </div>
+                        </div>
+                        <div>
+                            <h2 className="font-semibold text-sm bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                                AI Assistant
+                            </h2>
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                                <p className="text-xs text-muted-foreground">Online</p>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h2 className="font-semibold text-sm">AI Assistant</h2>
-                        <p className="text-xs text-muted-foreground">Ask anything about your document</p>
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-1">
+                        {messages.length > 0 && (
+                            <>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={handleDownloadChat}
+                                    className="h-8 w-8 hover:bg-purple-500/20 transition-colors"
+                                    title="Download chat"
+                                >
+                                    <Download className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={handleClearHistory}
+                                    className="h-8 w-8 hover:bg-purple-500/20 transition-colors"
+                                    title="Clear history"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </>
+                        )}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onClose}
+                            className="h-8 w-8 hover:bg-purple-500/20 transition-colors"
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
                     </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-                    <X className="h-4 w-4" />
-                </Button>
             </div>
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 overscroll-contain">
                 {messages.length === 0 && (
-                    <div className="text-center py-8">
-                        <div className="inline-flex p-4 rounded-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-4">
-                            <Sparkles className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                    <div className="text-center py-12 space-y-6 animate-[fadeIn_0.5s_ease]">
+                        {/* Animated AI Avatar */}
+                        <div className="inline-flex relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-xl opacity-50 animate-pulse"></div>
+                            <div className="relative p-6 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm border border-purple-500/30">
+                                <Sparkles className="h-10 w-10 text-purple-600 dark:text-purple-400 animate-pulse" />
+                            </div>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-4">
-                            Start a conversation with AI
-                        </p>
+
                         <div className="space-y-2">
-                            <p className="text-xs font-medium text-muted-foreground">Try asking:</p>
+                            <h3 className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                                Start a conversation
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                                Ask me anything about your document
+                            </p>
+                        </div>
+
+                        <div className="space-y-2 px-4">
+                            <p className="text-xs font-medium text-muted-foreground">Suggested prompts:</p>
                             {SUGGESTED_PROMPTS.map((prompt, index) => (
                                 <button
                                     key={index}
                                     onClick={() => handleSuggestedPrompt(prompt)}
-                                    className="block w-full text-left text-xs p-2 rounded border hover:bg-accent transition-colors"
+                                    className="block w-full text-left text-xs px-3 py-2 rounded-lg border border-purple-500/20 hover:border-purple-500/40 hover:bg-purple-500/5 transition-all duration-200 hover:scale-[1.02]"
+                                    style={{
+                                        animation: `slideInFromBottom 0.5s ease ${index * 0.1}s backwards`
+                                    }}
                                 >
                                     {prompt}
                                 </button>
@@ -329,18 +414,19 @@ export const AIChatPanel = ({
                     </div>
                 )}
 
-                {messages.map((message) => (
+                {messages.map((message, index) => (
                     <div
                         key={message.id}
-                        className={`flex flex-col gap-2 ${message.role === "user" ? "items-end" : "items-start"
-                            }`}
+                        className={`flex flex-col gap-2 ${message.role === "user" ? "items-end" : "items-start"}`}
+                        style={{
+                            animation: `slideInFromBottom 0.3s ease ${index * 0.05}s backwards`
+                        }}
                     >
                         {message.isError ? (
-                            // Error message with retry button
                             <div className="max-w-[85%] space-y-2">
-                                <div className="rounded-lg p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
+                                <div className="rounded-xl p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
                                     <div className="flex items-start gap-2 text-sm text-red-800 dark:text-red-200">
-                                        <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         <span>{message.errorMessage || "Failed to get response"}</span>
@@ -361,16 +447,19 @@ export const AIChatPanel = ({
                             </div>
                         ) : (
                             <div
-                                className={`max-w-[85%] rounded-lg p-3 ${message.role === "user"
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted"
+                                className={`max-w-[85%] rounded-2xl p-3.5 transition-all duration-200 ${message.role === "user"
+                                    ? "bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40"
+                                    : "bg-muted/50 backdrop-blur-sm border border-purple-500/20 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20"
                                     }`}
                             >
                                 {message.role === "assistant" ? (
                                     message.content ? (
                                         <MarkdownRenderer content={message.content} />
                                     ) : (
-                                        <Skeleton className="h-4 w-32" />
+                                        <div className="space-y-2">
+                                            <Skeleton className="h-3 w-32" />
+                                            <Skeleton className="h-3 w-24" />
+                                        </div>
                                     )
                                 ) : (
                                     <p className="text-sm whitespace-pre-wrap break-words">
@@ -384,19 +473,19 @@ export const AIChatPanel = ({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-6 w-6"
+                                    className="h-7 w-7 hover:bg-purple-500/10 transition-colors"
                                     onClick={() => handleCopyMessage(message.content)}
                                 >
-                                    <Copy className="h-3 w-3" />
+                                    <Copy className="h-3.5 w-3.5" />
                                 </Button>
                                 {onInsert && (
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-6 w-6"
+                                        className="h-7 w-7 hover:bg-purple-500/10 transition-colors"
                                         onClick={() => handleInsertMessage(message.content)}
                                     >
-                                        <FileText className="h-3 w-3" />
+                                        <FileText className="h-3.5 w-3.5" />
                                     </Button>
                                 )}
                             </div>
@@ -406,11 +495,11 @@ export const AIChatPanel = ({
 
                 {/* Loading indicator */}
                 {isLoading && (
-                    <div className="flex gap-3 mb-4 items-start">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-                            <Sparkles className="h-4 w-4 text-white animate-spin" />
+                    <div className="flex gap-3 items-start" style={{ animation: 'slideInFromBottom 0.3s ease' }}>
+                        <div className="shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/50">
+                            <Sparkles className="h-4 w-4 text-white animate-pulse" />
                         </div>
-                        <div className="flex-1 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg p-4 border border-purple-100 dark:border-purple-900">
+                        <div className="flex-1 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800/50">
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-medium bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                                     AI is thinking
@@ -428,23 +517,12 @@ export const AIChatPanel = ({
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
-            <div className="p-4 border-t">
-                {messages.length > 0 && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleClearHistory}
-                        className="w-full mb-2 text-xs"
-                    >
-                        <Trash2 className="h-3 w-3 mr-2" />
-                        Clear History
-                    </Button>
-                )}
-                {/* Selected text preview (ChatGPT style) */}
+            {/* Footer */}
+            <div className="p-4 border-t border-purple-500/20 bg-gradient-to-r from-purple-500/5 to-pink-500/5 backdrop-blur-sm space-y-3">
+                {/* Selected text preview */}
                 {selectedText && (
-                    <div className="mb-3 flex items-start gap-2 p-2.5 rounded-lg bg-muted/50 border border-border">
-                        <svg className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-purple-500/10 border border-purple-500/30 backdrop-blur-sm">
+                        <svg className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                         <div className="flex-1 min-w-0">
@@ -455,7 +533,7 @@ export const AIChatPanel = ({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-5 w-5 -mt-0.5"
+                            className="h-5 w-5 -mt-0.5 hover:bg-purple-500/20"
                             onClick={() => onClearSelection?.()}
                         >
                             <X className="h-3 w-3" />
@@ -463,30 +541,40 @@ export const AIChatPanel = ({
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="flex gap-2">
-                    <Textarea
-                        ref={textareaRef}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Ask a question..."
-                        className="min-h-[44px] max-h-32 resize-none"
-                        disabled={isLoading}
-                    />
-                    <Button
-                        type="submit"
-                        size="icon"
-                        disabled={!input.trim() || isLoading}
-                        className="h-[44px] w-[44px] rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50"
-                    >
-                        {isLoading ? (
-                            <div className="animate-spin h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full" />
-                        ) : (
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2L12 22M12 2L6 8M12 2L18 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                            </svg>
-                        )}
-                    </Button>
+                {/* Input form with integrated design */}
+                <form onSubmit={handleSubmit}>
+                    <div className="relative">
+                        {/* Unified gradient glow background */}
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl opacity-20 blur-sm"></div>
+
+                        {/* Main input container - only textarea and send button */}
+                        <div className="relative bg-background border border-purple-500/30 rounded-2xl p-2 flex items-center gap-2 focus-within:border-purple-500/50 transition-all">
+                            {/* Textarea */}
+                            <Textarea
+                                ref={textareaRef}
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                placeholder="Ask a question..."
+                                className="flex-1 min-h-[40px] max-h-32 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-2"
+                                disabled={isLoading}
+                            />
+
+                            {/* Send button (vertically centered) */}
+                            <Button
+                                type="submit"
+                                size="icon"
+                                disabled={!input.trim() || isLoading}
+                                className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 shadow-lg shadow-purple-500/30 transition-all hover:shadow-purple-500/50"
+                            >
+                                {isLoading ? (
+                                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                                ) : (
+                                    <Send className="h-4 w-4 text-white" />
+                                )}
+                            </Button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>

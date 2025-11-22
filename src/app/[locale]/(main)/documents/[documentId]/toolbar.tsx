@@ -249,13 +249,13 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
                     onKeyDown={onKeyDown}
                     value={value}
                     onChange={(e) => onInput(e.target.value)}
-                    className="text-5xl bg-transparent font-bold break-words outline-none resize-none w-full text-center leading-tight"
+                    className="text-5xl bg-transparent font-bold wrap-break-word outline-hidden resize-none w-full text-center leading-tight"
                     style={{ color: 'currentColor' }}
                 />
             ) : (
                 <div
                     onClick={enableInput}
-                    className="pb-[11.5px] text-5xl font-bold break-words outline-none w-full text-center cursor-pointer leading-tight"
+                    className="pb-[11.5px] text-5xl font-bold wrap-break-word outline-hidden w-full text-center cursor-pointer leading-tight"
                     style={{ color: 'currentColor' }}
                 >
                     {initialData.title}

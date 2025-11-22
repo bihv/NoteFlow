@@ -154,10 +154,10 @@ export async function POST(request: NextRequest) {
                 fullPrompt = GENERATION_PROMPTS[type as "expand" | "improve" | "continue"](context);
                 break;
 
-            case "outline":
+            case "outline-solid":
                 if (!prompt) {
                     return new Response(
-                        JSON.stringify({ error: "Topic/prompt is required for outline generation" }),
+                        JSON.stringify({ error: "Topic/prompt is required for outline-solid generation" }),
                         { status: 400, headers: { "Content-Type": "application/json" } }
                     );
                 }
