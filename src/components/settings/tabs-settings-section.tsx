@@ -1,64 +1,60 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useTabs, updateMaxTabsSetting } from "@/hooks/use-tabs";
+import { useTabs } from "@/hooks/use-tabs";
+import { usePreferences } from "@/hooks/use-preferences";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
-const MIN_TABS = 5;
-const MAX_TABS_LIMIT = 50;
+const MAX_TABS_OPTIONS = [
+    { value: 5, label: "5 tabs" },
+    { value: 10, label: "10 tabs" },
+    { value: 15, label: "15 tabs" },
+    { value: 20, label: "20 tabs" },
+    { value: 25, label: "25 tabs" },
+    { value: 30, label: "30 tabs" },
+    { value: 40, label: "40 tabs" },
+    { value: 50, label: "50 tabs" },
+];
 
 export function TabsSettingsSection() {
     const t = useTranslations();
-    const { tabs, maxTabs } = useTabs();
-    const [localMaxTabs, setLocalMaxTabs] = useState(maxTabs);
-
-    // Sync local state with hook state
-    useEffect(() => {
-        setLocalMaxTabs(maxTabs);
-    }, [maxTabs]);
-
-    const handleMaxTabsChange = (value: number[]) => {
-        const newMax = value[0];
-        setLocalMaxTabs(newMax);
-        updateMaxTabsSetting(newMax);
-    };
+    const { tabs } = useTabs();
+    const { preferences, updatePreference } = usePreferences();
+    const maxTabs = preferences.maxTabs;
 
     const currentTabsCount = tabs.length;
-    const exceedsLimit = currentTabsCount > localMaxTabs;
+    const exceedsLimit = currentTabsCount > maxTabs;
 
     return (
         <div className="space-y-4 border rounded-lg p-6">
             <h2 className="text-xl font-semibold">{t('settings.tabs.title')}</h2>
 
             <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="space-y-1">
                     <Label>{t('settings.tabs.maxTabs')}</Label>
-                    <span className="text-sm font-medium text-muted-foreground">
-                        {localMaxTabs} tabs
-                    </span>
+                    <p className="text-sm text-muted-foreground">
+                        {t('settings.tabs.maxTabsDescription')}
+                    </p>
                 </div>
 
-                <p className="text-sm text-muted-foreground">
-                    {t('settings.tabs.maxTabsDescription')}
-                </p>
-
-                <Slider
-                    value={[localMaxTabs]}
-                    onValueChange={handleMaxTabsChange}
-                    min={MIN_TABS}
-                    max={MAX_TABS_LIMIT}
-                    step={1}
-                    className="w-full"
-                />
-
-                <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{MIN_TABS}</span>
-                    <span>{MAX_TABS_LIMIT}</span>
-                </div>
+                <Select
+                    value={maxTabs.toString()}
+                    onValueChange={(value) => updatePreference("maxTabs", parseInt(value))}
+                >
+                    <SelectTrigger>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {MAX_TABS_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value.toString()}>
+                                {option.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
 
                 <div className="pt-2">
                     <p className="text-sm">
@@ -66,7 +62,7 @@ export function TabsSettingsSection() {
                             {t('settings.tabs.currentTabs')}:{" "}
                         </span>
                         <span className={exceedsLimit ? "text-destructive font-medium" : "font-medium"}>
-                            {currentTabsCount} / {localMaxTabs}
+                            {currentTabsCount} / {maxTabs}
                         </span>
                     </p>
                 </div>
@@ -77,7 +73,7 @@ export function TabsSettingsSection() {
                         <AlertDescription>
                             {t('settings.tabs.warning', {
                                 current: currentTabsCount,
-                                max: localMaxTabs
+                                max: maxTabs
                             })}
                         </AlertDescription>
                     </Alert>

@@ -11,15 +11,20 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { usePreferences } from "@/hooks/use-preferences";
 
 export function LanguageSwitcher() {
     const t = useTranslations();
     const locale = useLocale();
     const router = useRouter();
     const pathname = usePathname();
+    const { updatePreference } = usePreferences();
 
     const handleLanguageChange = (newLocale: string) => {
+        // Update next-intl routing (changes URL and locale)
         router.replace(pathname, { locale: newLocale });
+        // Sync to Convex (database)
+        updatePreference("locale", newLocale);
     };
 
     return (

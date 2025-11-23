@@ -88,6 +88,11 @@ export default defineSchema({
         historyMaxVersions: v.number(), // 10 to 100
         historyRetentionDays: v.number(), // 7 to 365
         historyShowNotifications: v.boolean(),
+        // Tabs settings (optional for backward compatibility)
+        maxTabs: v.optional(v.number()), // 5 to 50
+        // Appearance settings (optional for backward compatibility)
+        theme: v.optional(v.string()), // "light" | "dark" | "system"
+        locale: v.optional(v.string()), // "en" | "vi"
     })
         .index("by_user", ["userId"]),
 });
