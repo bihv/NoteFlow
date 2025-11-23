@@ -22,6 +22,8 @@ export default defineSchema({
         tags: v.optional(v.array(v.string())),
         summary: v.optional(v.string()),
         aiMetadata: v.optional(v.any()), // For extensibility (last generation time, etc.)
+        // Version history
+        lastVersionCreatedAt: v.optional(v.number()), // Timestamp of last auto-version creation
     })
         .index("by_user", ["userId"])
         .index("by_user_parent", ["userId", "parentDocument"])
@@ -59,4 +61,22 @@ export default defineSchema({
     })
         .index("by_document", ["documentId"])
         .index("by_parent", ["parentCommentId"]),
+
+    documentVersions: defineTable({
+        documentId: v.id("documents"),
+        userId: v.string(),
+        // Snapshot data
+        documentSnapshot: v.object({
+            title: v.string(),
+            icon: v.optional(v.string()),
+            coverImage: v.optional(v.string()),
+            tags: v.optional(v.array(v.string())),
+        }),
+        blocksSnapshot: v.array(v.any()), // Array of blocks at this point in time
+        // Metadata
+        createdAt: v.number(),
+        changeDescription: v.optional(v.string()), // Auto-generated or user-provided
+    })
+        .index("by_document", ["documentId"])
+        .index("by_document_date", ["documentId", "createdAt"]),
 });

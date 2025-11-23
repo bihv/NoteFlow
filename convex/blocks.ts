@@ -244,6 +244,42 @@ export const syncBlocks = mutation({
             await ctx.db.delete(block._id);
         }
 
+        // Auto-versioning: Create a version snapshot if enough time has passed
+        const DEBOUNCE_MS = 30000; // 30 seconds
+        const now = Date.now();
+        const lastVersionTime = document.lastVersionCreatedAt || 0;
+        const shouldCreateVersion = (now - lastVersionTime) >= DEBOUNCE_MS;
+
+        // Only create version if there were actual changes
+        const hasChanges = newBlocksToCreate.length > 0 || blocksToUpdate.length > 0 || blocksToDelete.length > 0;
+
+        if (shouldCreateVersion && hasChanges) {
+            // Create version snapshot
+            await ctx.db.insert("documentVersions", {
+                documentId: args.documentId,
+                userId,
+                documentSnapshot: {
+                    title: document.title,
+                    icon: document.icon,
+                    coverImage: document.coverImage,
+                    tags: document.tags,
+                },
+                blocksSnapshot: args.blocks.map((b) => ({
+                    type: b.type,
+                    content: b.content,
+                    props: b.props,
+                    position: args.blocks.indexOf(b),
+                })),
+                createdAt: now,
+                changeDescription: "Auto-saved version",
+            });
+
+            // Update document's lastVersionCreatedAt
+            await ctx.db.patch(args.documentId, {
+                lastVersionCreatedAt: now,
+            });
+        }
+
         // NOTE: We no longer update documents.content - using blocks-only storage
         // The content is reconstructed from blocks when loading documents
 

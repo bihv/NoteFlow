@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { ImageIcon, Smile, X, Share2, Loader2, Tags } from "lucide-react";
+import { ImageIcon, Smile, X, Share2, Loader2, Tags, History } from "lucide-react";
 import { useMutation } from "convex/react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import { api } from "@/convex/_generated/api";
 import { ShareModal } from "@/components/modals/share-modal";
 import { TagBadge } from "@/components/ui/tag-badge";
 import { TagsModal } from "@/components/modals/tags-modal";
+import { HistoryModal } from "@/components/modals/history-modal";
 
 interface ToolbarProps {
     initialData: Doc<"documents">;
@@ -26,6 +27,7 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
     const [showShareModal, setShowShareModal] = useState(false);
     const [isUploadingCover, setIsUploadingCover] = useState(false);
     const [showTagsModal, setShowTagsModal] = useState(false);
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
 
     const update = useMutation(api.documents.update);
     const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -163,6 +165,12 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
                 onClose={() => setShowShareModal(false)}
                 document={initialData}
             />
+            <HistoryModal
+                isOpen={showHistoryModal}
+                onClose={() => setShowHistoryModal(false)}
+                documentId={initialData._id}
+                documentTitle={initialData.title}
+            />
 
             {/* Facebook-style Layout: Icon as Avatar + Title + Actions */}
             <div className="px-6 pb-4">
@@ -261,6 +269,15 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
                     {/* Right: Action Buttons */}
                     {!preview && (
                         <div className="flex items-center gap-2 pb-2">
+                            <Button
+                                onClick={() => setShowHistoryModal(true)}
+                                className="hover:scale-105 transition-transform duration-200"
+                                variant="ghost"
+                                size="sm"
+                            >
+                                <History className="h-4 w-4 mr-2" />
+                                History
+                            </Button>
                             <Button
                                 onClick={() => setShowTagsModal(true)}
                                 className="hover:scale-105 transition-transform duration-200"

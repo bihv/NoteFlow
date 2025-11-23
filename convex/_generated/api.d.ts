@@ -9,6 +9,7 @@
  */
 
 import type * as blocks from "../blocks.js";
+import type * as documentVersions from "../documentVersions.js";
 import type * as documents from "../documents.js";
 
 import type {
@@ -19,6 +20,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   blocks: typeof blocks;
+  documentVersions: typeof documentVersions;
   documents: typeof documents;
 }>;
 
