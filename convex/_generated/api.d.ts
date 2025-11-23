@@ -9,8 +9,10 @@
  */
 
 import type * as blocks from "../blocks.js";
+import type * as crons from "../crons.js";
 import type * as documentVersions from "../documentVersions.js";
 import type * as documents from "../documents.js";
+import type * as userPreferences from "../userPreferences.js";
 
 import type {
   ApiFromModules,
@@ -20,8 +22,10 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   blocks: typeof blocks;
+  crons: typeof crons;
   documentVersions: typeof documentVersions;
   documents: typeof documents;
+  userPreferences: typeof userPreferences;
 }>;
 
 /**

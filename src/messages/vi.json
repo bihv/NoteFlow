@@ -73,6 +73,21 @@
             "currentTabs": "Tabs hiện tại",
             "warning": "Bạn đang mở {current} tabs, vượt quá giới hạn mới là {max} tabs. Vui lòng đóng bớt tabs."
         },
+        "history": {
+            "title": "Lịch Sử Phiên Bản",
+            "enableAutoVersioning": "Bật tự động lưu phiên bản",
+            "enableAutoVersioningDescription": "Tự động lưu phiên bản tài liệu khi bạn chỉnh sửa",
+            "debounceTime": "Khoảng thời gian lưu",
+            "debounceTimeDescription": "Thời gian tối thiểu giữa các lần lưu phiên bản tự động",
+            "maxVersions": "Số phiên bản tối đa mỗi tài liệu",
+            "maxVersionsDescription": "Chỉ giữ lại N phiên bản gần nhất",
+            "retentionDays": "Giữ phiên bản trong",
+            "retentionDaysDescription": "Tự động xóa các phiên bản cũ hơn thời gian này",
+            "showNotifications": "Hiển thị thông báo",
+            "showNotificationsDescription": "Hiển thị thông báo khi phiên bản mới được lưu",
+            "versionCreated": "Đã lưu phiên bản",
+            "versionCreatedDescription": "Phiên bản tài liệu đã được lưu thành công"
+        },
         "account": {
             "title": "Tài khoản",
             "deleteAccount": "Xóa Tài khoản",

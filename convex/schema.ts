@@ -79,4 +79,15 @@ export default defineSchema({
     })
         .index("by_document", ["documentId"])
         .index("by_document_date", ["documentId", "createdAt"]),
+
+    userPreferences: defineTable({
+        userId: v.string(),
+        // History settings
+        historyEnabled: v.boolean(),
+        historyDebounceMs: v.number(), // 30000 (30s) to 600000 (10min)
+        historyMaxVersions: v.number(), // 10 to 100
+        historyRetentionDays: v.number(), // 7 to 365
+        historyShowNotifications: v.boolean(),
+    })
+        .index("by_user", ["userId"]),
 });

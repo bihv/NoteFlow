@@ -7,6 +7,7 @@ import { DataExportSection } from "@/components/settings/data-export-section";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { AppearanceSection } from "@/components/settings/appearance-section";
 import { TabsSettingsSection } from "@/components/settings/tabs-settings-section";
+import { HistorySettingsSection } from "@/components/settings/history-settings-section";
 import { AccountSection } from "@/components/settings/account-section";
 
 const SettingsPage = () => {
@@ -33,6 +34,8 @@ const SettingsPage = () => {
                 <AppearanceSection />
 
                 <TabsSettingsSection />
+
+                <HistorySettingsSection />
 
                 <AccountSection user={user} />
             </div>

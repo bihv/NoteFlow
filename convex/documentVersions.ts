@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
 /**
@@ -235,5 +235,76 @@ export const deleteVersion = mutation({
         }
 
         await ctx.db.delete(args.versionId);
+    },
+});
+
+/**
+ * Internal mutation: Cleanup old versions globally (called by cron)
+ * This runs periodically to remove versions that:
+ * 1. Exceed user's retention period
+ * 2. Exceed user's max versions limit per document
+ */
+export const cleanupAllOldVersions = internalMutation({
+    args: {},
+    handler: async (ctx) => {
+        const now = Date.now();
+        let totalDeleted = 0;
+
+        // Get all user preferences
+        const allPreferences = await ctx.db.query("userPreferences").collect();
+
+        // Create a map of userId -> preferences
+        const preferencesMap = new Map(
+            allPreferences.map(pref => [pref.userId, pref])
+        );
+
+        // Get all documents (we need to check versions for each)
+        const allDocuments = await ctx.db.query("documents").collect();
+
+        for (const document of allDocuments) {
+            const userId = document.userId;
+            const preferences = preferencesMap.get(userId);
+
+            // Get user's settings or use defaults
+            const retentionDays = preferences?.historyRetentionDays ?? 90;
+            const maxVersions = preferences?.historyMaxVersions ?? 50;
+
+            // Calculate cutoff time
+            const cutoffTime = now - (retentionDays * 24 * 60 * 60 * 1000);
+
+            // Get all versions for this document (newest first)
+            const versions = await ctx.db
+                .query("documentVersions")
+                .withIndex("by_document_date", (q) => q.eq("documentId", document._id))
+                .order("desc")
+                .collect();
+
+            // Delete versions that are too old
+            for (const version of versions) {
+                if (version.createdAt < cutoffTime) {
+                    await ctx.db.delete(version._id);
+                    totalDeleted++;
+                }
+            }
+
+            // Delete versions that exceed max limit
+            // Get fresh list after retention cleanup
+            const remainingVersions = await ctx.db
+                .query("documentVersions")
+                .withIndex("by_document_date", (q) => q.eq("documentId", document._id))
+                .order("desc")
+                .collect();
+
+            if (remainingVersions.length > maxVersions) {
+                const versionsToDelete = remainingVersions.slice(maxVersions);
+                for (const version of versionsToDelete) {
+                    await ctx.db.delete(version._id);
+                    totalDeleted++;
+                }
+            }
+        }
+
+        console.log(`[Cron] Cleaned up ${totalDeleted} old document versions`);
+        return { deletedCount: totalDeleted };
     },
 });

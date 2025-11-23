@@ -245,15 +245,26 @@ export const syncBlocks = mutation({
         }
 
         // Auto-versioning: Create a version snapshot if enough time has passed
-        const DEBOUNCE_MS = 30000; // 30 seconds
+        // Get user's history settings
+        const preferences = await ctx.db
+            .query("userPreferences")
+            .withIndex("by_user", (q) => q.eq("userId", userId))
+            .first();
+
+        const historyEnabled = preferences?.historyEnabled ?? true;
+        const debounceMs = preferences?.historyDebounceMs ?? 30000;
+        const showNotifications = preferences?.historyShowNotifications ?? false;
+
         const now = Date.now();
         const lastVersionTime = document.lastVersionCreatedAt || 0;
-        const shouldCreateVersion = (now - lastVersionTime) >= DEBOUNCE_MS;
+        const shouldCreateVersion = (now - lastVersionTime) >= debounceMs;
 
-        // Only create version if there were actual changes
+        // Only create version if there were actual changes and history is enabled
         const hasChanges = newBlocksToCreate.length > 0 || blocksToUpdate.length > 0 || blocksToDelete.length > 0;
 
-        if (shouldCreateVersion && hasChanges) {
+        let versionCreated = false;
+
+        if (historyEnabled && shouldCreateVersion && hasChanges) {
             // Create version snapshot
             await ctx.db.insert("documentVersions", {
                 documentId: args.documentId,
@@ -278,6 +289,24 @@ export const syncBlocks = mutation({
             await ctx.db.patch(args.documentId, {
                 lastVersionCreatedAt: now,
             });
+
+            versionCreated = true;
+
+            // Enforce max versions limit immediately (for instant feedback)
+            // Retention cleanup is handled by daily cron job
+            const maxVersions = preferences?.historyMaxVersions ?? 50;
+            const allVersions = await ctx.db
+                .query("documentVersions")
+                .withIndex("by_document_date", (q) => q.eq("documentId", args.documentId))
+                .order("desc")
+                .collect();
+
+            if (allVersions.length > maxVersions) {
+                const versionsToDelete = allVersions.slice(maxVersions);
+                for (const version of versionsToDelete) {
+                    await ctx.db.delete(version._id);
+                }
+            }
         }
 
         // NOTE: We no longer update documents.content - using blocks-only storage
@@ -287,6 +316,8 @@ export const syncBlocks = mutation({
             created: newBlocksToCreate.length,
             updated: blocksToUpdate.length,
             deleted: blocksToDelete.length,
+            versionCreated,
+            showNotifications,
         };
     },
 });

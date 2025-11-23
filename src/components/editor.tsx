@@ -146,14 +146,23 @@ export const Editor = ({ onChange, initialContent, editable, documentId }: Edito
         let timeoutId: NodeJS.Timeout;
         return (docId: Id<"documents">, blocks: Block[]) => {
             clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
+            timeoutId = setTimeout(async () => {
                 // Only sync if blocks API is available
                 if ((api as any).blocks?.syncBlocks) {
-                    syncBlocks({ documentId: docId, blocks })
-                        .catch((error) => {
-                            console.error("Failed to sync blocks:", error);
-                            // Silent fail - document.content is still updated via onChange
-                        });
+                    try {
+                        const result = await syncBlocks({ documentId: docId, blocks });
+
+                        // Show notification if version was created and user enabled notifications
+                        if (result?.versionCreated && result?.showNotifications) {
+                            toast.success("Version saved", {
+                                description: "Document version saved successfully",
+                                duration: 3000,
+                            });
+                        }
+                    } catch (error) {
+                        console.error("Failed to sync blocks:", error);
+                        // Silent fail - document.content is still updated via onChange
+                    }
                 }
             }, 2000); // 2 second debounce
         };

@@ -73,6 +73,21 @@
             "currentTabs": "Current tabs",
             "warning": "You have {current} tabs open, exceeding the new limit of {max} tabs. Please close some tabs."
         },
+        "history": {
+            "title": "Version History",
+            "enableAutoVersioning": "Enable automatic versioning",
+            "enableAutoVersioningDescription": "Automatically save document versions as you edit",
+            "debounceTime": "Save interval",
+            "debounceTimeDescription": "Minimum time between automatic version saves",
+            "maxVersions": "Maximum versions per document",
+            "maxVersionsDescription": "Keep only the N most recent versions",
+            "retentionDays": "Keep versions for",
+            "retentionDaysDescription": "Automatically delete versions older than this",
+            "showNotifications": "Show notifications",
+            "showNotificationsDescription": "Display a message when new versions are saved",
+            "versionCreated": "Version saved",
+            "versionCreatedDescription": "Document version saved successfully"
+        },
         "account": {
             "title": "Account",
             "deleteAccount": "Delete Account",
