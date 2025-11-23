@@ -1,8 +1,16 @@
 import { Doc } from "@/convex/_generated/dataModel";
 
-type Document = Doc<"documents">;
+type Block = {
+    type: string;
+    content?: any;
+    props?: any;
+};
 
-export function convertToMarkdown(documents: Document[]): string {
+type DocumentWithBlocks = Doc<"documents"> & {
+    blocks?: Block[];
+};
+
+export function convertToMarkdown(documents: DocumentWithBlocks[]): string {
     let markdown = `# Nova Export\n\n`;
     markdown += `Exported: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n\n`;
     markdown += `Total Documents: ${documents.length}\n\n`;
@@ -10,7 +18,7 @@ export function convertToMarkdown(documents: Document[]): string {
 
     // Group documents by parent/child relationship
     const rootDocuments = documents.filter(doc => !doc.parentDocument);
-    const childrenMap = new Map<string, Document[]>();
+    const childrenMap = new Map<string, DocumentWithBlocks[]>();
 
     documents.forEach(doc => {
         if (doc.parentDocument) {
@@ -23,7 +31,7 @@ export function convertToMarkdown(documents: Document[]): string {
     });
 
     // Render documents recursively
-    const renderDocument = (doc: Document, level: number = 0): string => {
+    const renderDocument = (doc: DocumentWithBlocks, level: number = 0): string => {
         const indent = "  ".repeat(level);
         let md = "";
 
@@ -41,32 +49,32 @@ export function convertToMarkdown(documents: Document[]): string {
         }
         md += `\n`;
 
-        // Content
-        if (doc.content) {
-            try {
-                const contentObj = JSON.parse(doc.content);
-                if (Array.isArray(contentObj)) {
-                    // BlockNote format
-                    contentObj.forEach((block: any) => {
-                        if (block.type === "paragraph" && block.content) {
-                            const text = block.content.map((c: any) => c.text || "").join("");
-                            if (text) md += `${indent}${text}\n\n`;
-                        } else if (block.type === "heading" && block.content) {
-                            const text = block.content.map((c: any) => c.text || "").join("");
-                            const level = block.props?.level || 1;
-                            md += `${indent}${"#".repeat(level + headingLevel)} ${text}\n\n`;
-                        } else if (block.type === "bulletListItem" && block.content) {
-                            const text = block.content.map((c: any) => c.text || "").join("");
-                            md += `${indent}- ${text}\n`;
-                        } else if (block.type === "numberedListItem" && block.content) {
-                            const text = block.content.map((c: any) => c.text || "").join("");
-                            md += `${indent}1. ${text}\n`;
-                        }
-                    });
+        // Content from blocks
+        if (doc.blocks && Array.isArray(doc.blocks)) {
+            doc.blocks.forEach((block: Block) => {
+                if (block.type === "paragraph" && block.content) {
+                    const text = Array.isArray(block.content)
+                        ? block.content.map((c: any) => c.text || "").join("")
+                        : "";
+                    if (text) md += `${indent}${text}\n\n`;
+                } else if (block.type === "heading" && block.content) {
+                    const text = Array.isArray(block.content)
+                        ? block.content.map((c: any) => c.text || "").join("")
+                        : "";
+                    const level = block.props?.level || 1;
+                    md += `${indent}${"#".repeat(level + headingLevel)} ${text}\n\n`;
+                } else if (block.type === "bulletListItem" && block.content) {
+                    const text = Array.isArray(block.content)
+                        ? block.content.map((c: any) => c.text || "").join("")
+                        : "";
+                    md += `${indent}- ${text}\n`;
+                } else if (block.type === "numberedListItem" && block.content) {
+                    const text = Array.isArray(block.content)
+                        ? block.content.map((c: any) => c.text || "").join("")
+                        : "";
+                    md += `${indent}1. ${text}\n`;
                 }
-            } catch (e) {
-                md += `${indent}${doc.content}\n\n`;
-            }
+            });
         }
 
         // Cover image

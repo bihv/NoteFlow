@@ -69,43 +69,34 @@ export const Navigation = () => {
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [searchQuery]);
 
-    // Helper function to extract plain text from Block Editor JSON
-    const getPlainTextFromContent = (content: string | undefined): string => {
-        if (!content) return "";
+    // Helper function to extract plain text from blocks array
+    const getPlainTextFromBlocks = (blocks: any[] | undefined): string => {
+        if (!blocks || !Array.isArray(blocks)) return "";
 
-        try {
-            const parsed = JSON.parse(content);
-            if (Array.isArray(parsed)) {
-                // Extract text from BlockNote blocks
-                return parsed
-                    .map((block: any) => {
-                        if (block.content && Array.isArray(block.content)) {
-                            return block.content
-                                .map((item: any) => item.text || "")
-                                .join("");
-                        }
-                        return "";
-                    })
-                    .filter((text: string) => text.length > 0)
-                    .join(" ");
-            }
-            return "";
-        } catch {
-            // If not JSON, return as is
-            return content;
-        }
+        return blocks
+            .map((block: any) => {
+                if (block.content && Array.isArray(block.content)) {
+                    return block.content
+                        .map((item: any) => item.text || "")
+                        .join("");
+                }
+                return "";
+            })
+            .filter((text: string) => text.length > 0)
+            .join(" ");
     };
 
-    // Fetch all documents for search
-    const searchDocuments = useQuery(api.documents.getSearch);
+    // Fetch all documents with blocks for search
+    const searchDocuments = useQuery(api.documents.getSearchWithBlocks);
 
     // Filter documents based on search query
     const filteredDocuments = searchQuery && searchDocuments
         ? searchDocuments.filter((doc) => {
             const query = searchQuery.toLowerCase();
+            const plainText = getPlainTextFromBlocks(doc.blocks);
             return (
                 doc.title.toLowerCase().includes(query) ||
-                doc.content?.toLowerCase().includes(query)
+                plainText.toLowerCase().includes(query)
             );
         })
         : [];
@@ -245,7 +236,7 @@ export const Navigation = () => {
                                                     {doc.title}
                                                 </div>
                                                 {(() => {
-                                                    const plainText = getPlainTextFromContent(doc.content);
+                                                    const plainText = getPlainTextFromBlocks(doc.blocks);
                                                     return plainText ? (
                                                         <div className="text-xs text-muted-foreground truncate mt-1">
                                                             {plainText.substring(0, 80)}...

@@ -153,6 +153,37 @@ export const remove = mutation({
             throw new Error("Unauthorized");
         }
 
+        // Delete all blocks associated with this document
+        const blocks = await ctx.db
+            .query("blocks")
+            .withIndex("by_document", (q) => q.eq("documentId", args.id))
+            .collect();
+
+        for (const block of blocks) {
+            await ctx.db.delete(block._id);
+        }
+
+        // Delete all comments associated with this document
+        const comments = await ctx.db
+            .query("comments")
+            .withIndex("by_document", (q) => q.eq("documentId", args.id))
+            .collect();
+
+        for (const comment of comments) {
+            await ctx.db.delete(comment._id);
+        }
+
+        // Delete all document versions associated with this document
+        const versions = await ctx.db
+            .query("documentVersions")
+            .withIndex("by_document", (q) => q.eq("documentId", args.id))
+            .collect();
+
+        for (const version of versions) {
+            await ctx.db.delete(version._id);
+        }
+
+        // Delete the document
         const document = await ctx.db.delete(args.id);
 
         return document;
@@ -177,6 +208,43 @@ export const getSearch = query({
             .collect();
 
         return documents;
+    },
+});
+
+export const getSearchWithBlocks = query({
+    handler: async (ctx) => {
+        const identity = await ctx.auth.getUserIdentity();
+
+        if (!identity) {
+            throw new Error("Not authenticated");
+        }
+
+        const userId = identity.subject;
+
+        const documents = await ctx.db
+            .query("documents")
+            .withIndex("by_user", (q) => q.eq("userId", userId))
+            .filter((q) => q.eq(q.field("isArchived"), false))
+            .order("desc")
+            .collect();
+
+        // Fetch blocks for each document
+        const documentsWithBlocks = await Promise.all(
+            documents.map(async (doc) => {
+                const blocks = await ctx.db
+                    .query("blocks")
+                    .withIndex("by_document_position", (q) => q.eq("documentId", doc._id))
+                    .order("asc")
+                    .collect();
+
+                return {
+                    ...doc,
+                    blocks,
+                };
+            })
+        );
+
+        return documentsWithBlocks;
     },
 });
 
@@ -317,6 +385,43 @@ export const exportActive = query({
     },
 });
 
+export const exportActiveWithBlocks = query({
+    handler: async (ctx) => {
+        const identity = await ctx.auth.getUserIdentity();
+
+        if (!identity) {
+            throw new Error("Not authenticated");
+        }
+
+        const userId = identity.subject;
+
+        const documents = await ctx.db
+            .query("documents")
+            .withIndex("by_user", (q) => q.eq("userId", userId))
+            .filter((q) => q.eq(q.field("isArchived"), false))
+            .order("desc")
+            .collect();
+
+        // Fetch blocks for each document
+        const documentsWithBlocks = await Promise.all(
+            documents.map(async (doc) => {
+                const blocks = await ctx.db
+                    .query("blocks")
+                    .withIndex("by_document_position", (q) => q.eq("documentId", doc._id))
+                    .order("asc")
+                    .collect();
+
+                return {
+                    ...doc,
+                    blocks,
+                };
+            })
+        );
+
+        return documentsWithBlocks;
+    },
+});
+
 export const exportAll = query({
     handler: async (ctx) => {
         const identity = await ctx.auth.getUserIdentity();
@@ -337,6 +442,42 @@ export const exportAll = query({
     },
 });
 
+export const exportAllWithBlocks = query({
+    handler: async (ctx) => {
+        const identity = await ctx.auth.getUserIdentity();
+
+        if (!identity) {
+            throw new Error("Not authenticated");
+        }
+
+        const userId = identity.subject;
+
+        const documents = await ctx.db
+            .query("documents")
+            .withIndex("by_user", (q) => q.eq("userId", userId))
+            .order("desc")
+            .collect();
+
+        // Fetch blocks for each document
+        const documentsWithBlocks = await Promise.all(
+            documents.map(async (doc) => {
+                const blocks = await ctx.db
+                    .query("blocks")
+                    .withIndex("by_document_position", (q) => q.eq("documentId", doc._id))
+                    .order("asc")
+                    .collect();
+
+                return {
+                    ...doc,
+                    blocks,
+                };
+            })
+        );
+
+        return documentsWithBlocks;
+    },
+});
+
 
 export const importDocuments = mutation({
     args: {
@@ -348,6 +489,8 @@ export const importDocuments = mutation({
                 coverImage: v.optional(v.string()),
                 parentDocument: v.optional(v.string()), // Original parent ID
                 isArchived: v.optional(v.boolean()),
+                blocks: v.optional(v.array(v.any())), // Blocks data
+                tags: v.optional(v.array(v.string())), // Tags data
             })
         ),
     },
@@ -387,8 +530,27 @@ export const importDocuments = mutation({
                     userId,
                     isArchived: doc.isArchived || false,
                     isPublished: false,
+                    tags: doc.tags,
                     // parentDocument will be set in second pass
                 });
+
+                // Create blocks for this document
+                if (doc.blocks && Array.isArray(doc.blocks)) {
+                    for (let i = 0; i < doc.blocks.length; i++) {
+                        const block = doc.blocks[i];
+                        try {
+                            await ctx.db.insert("blocks", {
+                                documentId: newDocId,
+                                type: block.type || "paragraph",
+                                content: block.content,
+                                props: block.props,
+                                position: block.position !== undefined ? block.position : i,
+                            });
+                        } catch (error) {
+                            console.error(`Failed to import block for document: ${doc.title}`, error);
+                        }
+                    }
+                }
 
                 // Map old ID to new ID
                 if (doc._id) {

@@ -48,7 +48,7 @@ export function DataExportSection() {
     const handleExportActive = async () => {
         setExportingActive(true);
         try {
-            const documents = await convex.query(api.documents.exportActive);
+            const documents = await convex.query(api.documents.exportActiveWithBlocks);
             const timestamp = new Date().toISOString().split("T")[0];
 
             if (format === "json") {
@@ -71,7 +71,7 @@ export function DataExportSection() {
     const handleExportAll = async () => {
         setExportingAll(true);
         try {
-            const documents = await convex.query(api.documents.exportAll);
+            const documents = await convex.query(api.documents.exportAllWithBlocks);
             const timestamp = new Date().toISOString().split("T")[0];
 
             if (format === "json") {
@@ -109,11 +109,12 @@ export function DataExportSection() {
             const documents = data.map((doc: any) => ({
                 _id: doc._id, // Preserve original ID for parent mapping
                 title: doc.title || "Untitled",
-                content: doc.content,
                 icon: doc.icon,
                 coverImage: doc.coverImage,
                 parentDocument: doc.parentDocument, // Original parent ID
                 isArchived: doc.isArchived || false,
+                blocks: doc.blocks, // Preserve blocks data
+                tags: doc.tags, // Preserve tags data
             }));
 
             const result = await convex.mutation(api.documents.importDocuments, { documents });
