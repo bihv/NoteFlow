@@ -150,13 +150,12 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
     };
 
     return (
-        <div className="pl-[54px] group relative">
+        <div className="group relative">
             <TagsModal
                 isOpen={showTagsModal}
                 onClose={() => setShowTagsModal(false)}
                 tags={initialData.tags || []}
                 onUpdateTags={handleUpdateTags}
-                documentContent={initialData.content}
                 documentTitle={initialData.title}
             />
             <ShareModal
@@ -165,106 +164,129 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
                 document={initialData}
             />
 
-            {!!initialData.icon && !preview && (
-                <div className="flex items-center gap-x-2 group/icon pt-6">
-                    <IconPicker onChange={onIconSelect}>
-                        <p className="text-6xl hover:opacity-75 transition">
-                            {initialData.icon}
-                        </p>
-                    </IconPicker>
-                    <Button
-                        onClick={onRemoveIcon}
-                        className="rounded-full opacity-0 group-hover/icon:opacity-100 transition text-muted-foreground text-xs"
-                        variant="outline"
-                        size="icon"
-                    >
-                        <X className="h-4 w-4" />
-                    </Button>
-                </div>
-            )}
-            {!!initialData.icon && preview && (
-                <p className="text-6xl pt-6">{initialData.icon}</p>
-            )}
-            <div className="flex items-center gap-x-1 py-4">
-                {!initialData.icon && !preview && (
-                    <IconPicker asChild onChange={onIconSelect}>
-                        <Button
-                            className="text-muted-foreground text-xs"
-                            variant="outline"
-                            size="sm"
-                        >
-                            <Smile className="h-4 w-4 mr-2" />
-                            Add icon
-                        </Button>
-                    </IconPicker>
-                )}
-                {!initialData.coverImage && !preview && (
-                    <Button
-                        onClick={onAddCover}
-                        disabled={isUploadingCover}
-                        className="text-muted-foreground text-xs"
-                        variant="outline"
-                        size="sm"
-                    >
-                        {isUploadingCover ? (
-                            <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Uploading...
-                            </>
-                        ) : (
-                            <>
-                                <ImageIcon className="h-4 w-4 mr-2" />
-                                Add cover
-                            </>
+            {/* Facebook-style Layout: Icon as Avatar + Title + Actions */}
+            <div className="px-6 pb-4">
+                {/* Icon + Title Row (Facebook profile style) */}
+                <div className="flex items-end justify-between gap-4 -mt-8">
+                    {/* Left: Icon (Avatar-style) + Title */}
+                    <div className="flex items-end gap-4 flex-1 min-w-0">
+                        {/* Icon as Avatar */}
+                        {!!initialData.icon && !preview && (
+                            <div className="relative group/icon flex-shrink-0">
+                                <IconPicker onChange={onIconSelect}>
+                                    <div className="w-32 h-32 flex items-center justify-center text-8xl hover:scale-105 transform duration-200 cursor-pointer">
+                                        {initialData.icon}
+                                    </div>
+                                </IconPicker>
+                                <Button
+                                    onClick={onRemoveIcon}
+                                    className="absolute -top-2 -right-2 rounded-full opacity-0 group-hover/icon:opacity-100 transition text-destructive bg-background hover:bg-destructive/10 border-destructive/50 shadow-md"
+                                    variant="outline"
+                                    size="icon"
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
                         )}
-                    </Button>
-                )}
-                {!preview && (
-                    <>
-                        <Button
-                            onClick={() => setShowTagsModal(true)}
-                            className="text-muted-foreground text-xs"
-                            variant="outline"
-                            size="sm"
-                        >
-                            <Tags className="h-4 w-4 mr-2" />
-                            Tags
-                        </Button>
-                        <Button
-                            onClick={() => setShowShareModal(true)}
-                            className="text-muted-foreground text-xs"
-                            variant="outline"
-                            size="sm"
-                        >
-                            <Share2 className="h-4 w-4 mr-2" />
-                            {initialData.shareEnabled ? "Manage sharing" : "Share"}
-                        </Button>
-                    </>
-                )}
-            </div>
-            {isEditing && !preview ? (
-                <TextareaAutosize
-                    ref={inputRef}
-                    onBlur={disableInput}
-                    onKeyDown={onKeyDown}
-                    value={value}
-                    onChange={(e) => onInput(e.target.value)}
-                    className="text-5xl bg-transparent font-bold wrap-break-word outline-hidden resize-none w-full text-center leading-tight"
-                    style={{ color: 'currentColor' }}
-                />
-            ) : (
-                <div
-                    onClick={enableInput}
-                    className="pb-[11.5px] text-5xl font-bold wrap-break-word outline-hidden w-full text-center cursor-pointer leading-tight"
-                    style={{ color: 'currentColor' }}
-                >
-                    {initialData.title}
+                        {!!initialData.icon && preview && (
+                            <div className="w-32 h-32 flex items-center justify-center text-8xl flex-shrink-0">
+                                {initialData.icon}
+                            </div>
+                        )}
+
+                        {/* Title + Quick Actions */}
+                        <div className="flex-1 min-w-0 pb-2">
+                            {/* Title */}
+                            {isEditing && !preview ? (
+                                <TextareaAutosize
+                                    ref={inputRef}
+                                    onBlur={disableInput}
+                                    onKeyDown={onKeyDown}
+                                    value={value}
+                                    onChange={(e) => onInput(e.target.value)}
+                                    className="text-4xl bg-transparent font-bold wrap-break-word outline-hidden resize-none w-full leading-tight"
+                                    style={{ color: 'currentColor' }}
+                                />
+                            ) : (
+                                <div
+                                    onClick={enableInput}
+                                    className="text-4xl font-bold wrap-break-word outline-hidden w-full cursor-pointer leading-tight hover:opacity-80 transition-opacity truncate"
+                                    style={{ color: 'currentColor' }}
+                                >
+                                    {initialData.title}
+                                </div>
+                            )}
+
+                            {/* Quick Add Icon/Cover Buttons (only show when no icon/cover) */}
+                            {!preview && (
+                                <div className="flex items-center gap-2 mt-2">
+                                    {!initialData.icon && (
+                                        <IconPicker asChild onChange={onIconSelect}>
+                                            <Button
+                                                className="text-muted-foreground text-xs h-7"
+                                                variant="ghost"
+                                                size="sm"
+                                            >
+                                                <Smile className="h-3.5 w-3.5 mr-1.5" />
+                                                Add icon
+                                            </Button>
+                                        </IconPicker>
+                                    )}
+                                    {!initialData.coverImage && (
+                                        <Button
+                                            onClick={onAddCover}
+                                            disabled={isUploadingCover}
+                                            className="text-muted-foreground text-xs h-7"
+                                            variant="ghost"
+                                            size="sm"
+                                        >
+                                            {isUploadingCover ? (
+                                                <>
+                                                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                                                    Uploading...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+                                                    Add cover
+                                                </>
+                                            )}
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right: Action Buttons */}
+                    {!preview && (
+                        <div className="flex items-center gap-2 pb-2">
+                            <Button
+                                onClick={() => setShowTagsModal(true)}
+                                className="hover:scale-105 transition-transform duration-200"
+                                variant="outline"
+                                size="sm"
+                            >
+                                <Tags className="h-4 w-4 mr-2" />
+                                Tags
+                            </Button>
+                            <Button
+                                onClick={() => setShowShareModal(true)}
+                                className="hover:scale-105 transition-transform duration-200"
+                                variant="default"
+                                size="sm"
+                            >
+                                <Share2 className="h-4 w-4 mr-2" />
+                                {initialData.shareEnabled ? "Manage" : "Share"}
+                            </Button>
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
 
             {/* Tags Display */}
             {initialData.tags && initialData.tags.length > 0 && (
-                <div className="flex flex-wrap justify-center gap-2 mt-8 mb-6">
+                <div className="flex flex-wrap justify-center gap-2 mt-4 mb-6">
                     {initialData.tags.map((tag, index) => (
                         <TagBadge
                             key={index}

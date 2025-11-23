@@ -7,7 +7,6 @@ export default defineSchema({
         userId: v.string(),
         isArchived: v.boolean(),
         parentDocument: v.optional(v.id("documents")),
-        content: v.optional(v.string()),
         coverImage: v.optional(v.string()),
         icon: v.optional(v.string()),
         isPublished: v.boolean(),
@@ -27,6 +26,20 @@ export default defineSchema({
         .index("by_user", ["userId"])
         .index("by_user_parent", ["userId", "parentDocument"])
         .index("by_share_url", ["shareUrl"]), // New index for public access
+
+    blocks: defineTable({
+        documentId: v.id("documents"),
+        type: v.string(), // "paragraph", "heading", "bulletListItem", "image", "codeBlock", etc.
+        content: v.optional(v.any()), // BlockNote content (can be string, array of inline content, or object)
+        props: v.optional(v.any()), // Block properties (textColor, backgroundColor, textAlignment, level, language, url, etc.)
+        position: v.number(), // Fractional index for ordering (0.0, 1.0, 1.5, 2.0, etc.) - allows efficient inserts
+        // For future collaboration features
+        version: v.optional(v.number()),
+        lastModifiedBy: v.optional(v.string()),
+        lastModifiedAt: v.optional(v.number()),
+    })
+        .index("by_document", ["documentId"])
+        .index("by_document_position", ["documentId", "position"]), // For efficient ordered queries
 
     comments: defineTable({
         documentId: v.id("documents"),

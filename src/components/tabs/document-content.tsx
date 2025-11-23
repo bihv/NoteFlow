@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useRef, useCallback, memo, useState } from "react";
+import { notFound } from "next/navigation";
 
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -27,10 +28,29 @@ function DocumentContentComponent({ documentId, isActive }: DocumentContentProps
         documentId: documentId,
     });
 
+    // Load blocks for this document
+    console.log('===> debug next', documentId)
+    const blocks = useQuery(api.blocks.getDocumentBlocks, {
+        documentId: documentId,
+    });
+    console.log("blocks", blocks);
+
     const update = useMutation(api.documents.update);
     const [showAIChat, setShowAIChat] = useState(false);
     const [selectedText, setSelectedText] = useState<string>("");
     const [aiContextText, setAiContextText] = useState<string>(""); // Text to pass to AI chat
+
+    // Reconstruct content from blocks
+    const isBlocksLoading = blocks === undefined;
+    const hasBlocks = blocks && blocks.length > 0;
+
+    const contentFromBlocks = hasBlocks
+        ? JSON.stringify(blocks.map(b => ({
+            type: b.type,
+            content: b.content,
+            props: b.props,
+        })), null, 2)
+        : undefined;
 
     // Update tab when document data changes (but avoid redundant updates)
     useEffect(() => {
@@ -85,11 +105,10 @@ function DocumentContentComponent({ documentId, isActive }: DocumentContentProps
     }, [selectedText]);
 
     const onChange = useCallback((content: string) => {
-        update({
-            id: documentId,
-            content,
-        });
-    }, [documentId, update]);
+        // Content is now managed by blocks table via editor's documentId prop
+        // This callback is kept for backward compatibility but does nothing
+        // The editor will automatically sync blocks via its internal syncBlocks call
+    }, []);
 
     if (document === undefined) {
         return (
@@ -108,7 +127,7 @@ function DocumentContentComponent({ documentId, isActive }: DocumentContentProps
     }
 
     if (document === null) {
-        return <div>Not found</div>;
+        notFound();
     }
 
     return (
@@ -116,11 +135,35 @@ function DocumentContentComponent({ documentId, isActive }: DocumentContentProps
             <Cover url={document.coverImage} />
             <div className="md:max-w-3xl lg:max-w-4xl mx-auto">
                 <Toolbar initialData={document} />
-                <Editor
-                    onChange={onChange}
-                    initialContent={document.content}
-                    editable={true}
-                />
+                {isBlocksLoading ? (
+                    // Loading skeleton while blocks are being fetched
+                    <div className="pl-8 pt-4 space-y-3">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-[90%]" />
+                        <Skeleton className="h-4 w-[95%]" />
+                        <Skeleton className="h-4 w-[85%]" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-[92%]" />
+                    </div>
+                ) : hasBlocks ? (
+                    // Render editor with actual content
+                    <Editor
+                        key={documentId}
+                        onChange={onChange}
+                        initialContent={contentFromBlocks}
+                        editable={true}
+                        documentId={documentId}
+                    />
+                ) : (
+                    // Empty state - render editor with empty content for editing
+                    <Editor
+                        key={documentId}
+                        onChange={onChange}
+                        initialContent={JSON.stringify([{ type: "paragraph", content: "" }], null, 2)}
+                        editable={true}
+                        documentId={documentId}
+                    />
+                )}
             </div>
 
             {/* AI Features */}
@@ -130,7 +173,7 @@ function DocumentContentComponent({ documentId, isActive }: DocumentContentProps
                     setShowAIChat(false);
                     setAiContextText(""); // Clear AI context when closing
                 }}
-                documentContent={document.content}
+                documentContent={contentFromBlocks || ""}
                 documentTitle={document.title}
                 selectedText={aiContextText}
                 onClearSelection={() => setAiContextText("")}

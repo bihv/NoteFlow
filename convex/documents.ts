@@ -188,7 +188,7 @@ export const getById = query({
         const document = await ctx.db.get(args.documentId);
 
         if (!document) {
-            throw new Error("Not found");
+            return null; // Return null instead of throwing
         }
 
         if (document.isPublished && !document.isArchived) {
@@ -196,13 +196,13 @@ export const getById = query({
         }
 
         if (!identity) {
-            throw new Error("Not authenticated");
+            return null; // Return null instead of throwing
         }
 
         const userId = identity.subject;
 
         if (document.userId !== userId) {
-            throw new Error("Unauthorized");
+            return null; // Return null instead of throwing
         }
 
         return document;
@@ -213,7 +213,6 @@ export const update = mutation({
     args: {
         id: v.id("documents"),
         title: v.optional(v.string()),
-        content: v.optional(v.string()),
         coverImage: v.optional(v.string()),
         icon: v.optional(v.string()),
         isPublished: v.optional(v.boolean()),
@@ -345,7 +344,6 @@ export const importDocuments = mutation({
             v.object({
                 _id: v.optional(v.string()), // Original ID for mapping
                 title: v.string(),
-                content: v.optional(v.string()),
                 icon: v.optional(v.string()),
                 coverImage: v.optional(v.string()),
                 parentDocument: v.optional(v.string()), // Original parent ID
@@ -384,7 +382,6 @@ export const importDocuments = mutation({
 
                 const newDocId = await ctx.db.insert("documents", {
                     title: doc.title,
-                    content: doc.content,
                     icon: doc.icon,
                     coverImage: doc.coverImage,
                     userId,

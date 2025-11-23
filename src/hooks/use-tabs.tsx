@@ -88,7 +88,18 @@ export function useTabs() {
             if (stored) {
                 const data = JSON.parse(stored);
                 console.log('[useTabs] Parsed initial data:', data);
-                return data.tabs || [];
+                const loadedTabs = data.tabs || [];
+
+                // Deduplicate tabs by id (keep first occurrence)
+                const uniqueTabs = loadedTabs.filter((tab: Tab, index: number, self: Tab[]) =>
+                    self.findIndex(t => t.id === tab.id) === index
+                );
+
+                if (uniqueTabs.length !== loadedTabs.length) {
+                    console.warn('[useTabs] Removed duplicate tabs:', loadedTabs.length - uniqueTabs.length);
+                }
+
+                return uniqueTabs;
             }
         } catch (error) {
             console.error("Failed to load tabs from localStorage:", error);
@@ -124,18 +135,21 @@ export function useTabs() {
 
     const addTab = useCallback((tab: Tab) => {
         console.log('[useTabs] addTab called with:', tab);
-        console.log('[useTabs] Current tabs state:', tabs);
-        const existingTab = tabs.find((t) => t.id === tab.id);
+        setTabs((prev) => {
+            console.log('[useTabs] Current tabs state:', prev);
+            const existingTab = prev.find((t) => t.id === tab.id);
 
-        if (existingTab) {
-            // Just activate the existing tab
-            console.log('[useTabs] Tab exists, activating:', tab.id);
-            setActiveTabId(tab.id);
-        } else {
+            if (existingTab) {
+                // Just activate the existing tab
+                console.log('[useTabs] Tab exists, activating:', tab.id);
+                setActiveTabId(tab.id);
+                return prev; // Don't modify tabs
+            }
+
             // Check if we've hit the max tabs limit
             const currentMaxTabs = getSettings().maxTabs;
-            if (tabs.length >= currentMaxTabs) {
-                console.log('[useTabs] Max tabs reached:', tabs.length, '>=', currentMaxTabs);
+            if (prev.length >= currentMaxTabs) {
+                console.log('[useTabs] Max tabs reached:', prev.length, '>=', currentMaxTabs);
                 toast.error(
                     `Bạn chỉ có thể mở tối đa ${currentMaxTabs} tab cùng lúc. Vui lòng đóng một tab trước khi mở tab mới.`,
                     {
@@ -143,18 +157,16 @@ export function useTabs() {
                         duration: 5000,
                     }
                 );
-                return;
+                return prev; // Don't modify tabs
             }
 
             console.log('[useTabs] Creating new tab:', tab);
-            setTabs((prev) => {
-                const updated = [...prev, tab];
-                console.log('[useTabs] Updated tabs:', updated);
-                return updated;
-            });
+            const updated = [...prev, tab];
+            console.log('[useTabs] Updated tabs:', updated);
             setActiveTabId(tab.id);
-        }
-    }, [tabs]);
+            return updated;
+        });
+    }, []); // Removed tabs dependency - use prev from setTabs callback
 
 
     const removeTab = useCallback((tabId: string) => {

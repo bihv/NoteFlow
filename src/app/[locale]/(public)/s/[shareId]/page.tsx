@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "convex/react";
+import { notFound } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,12 +29,31 @@ const SharePage = ({ params }: SharePageProps) => {
         shareUrl: shareId,
     });
 
+    // Load blocks for this document
+    const blocks = useQuery(
+        api.blocks.getDocumentBlocks,
+        document ? { documentId: document._id } : "skip"
+    );
+    console.log('====> block::  ', blocks);
+
     const update = useMutation(api.documents.update);
     const [isSaving, setIsSaving] = useState(false);
     const [userName, setUserName] = useState<string>("");
     const [showNamePrompt, setShowNamePrompt] = useState(false);
     const [shouldExpandSidebar, setShouldExpandSidebar] = useState(false);
     const sidebarExpandRef = useRef<(() => void) | undefined>(undefined);
+
+    // Reconstruct content from blocks
+    const isBlocksLoading = blocks === undefined;
+    const hasBlocks = blocks && blocks.length > 0;
+
+    const contentFromBlocks = hasBlocks
+        ? JSON.stringify(blocks.map(b => ({
+            type: b.type,
+            content: b.content,
+            props: b.props,
+        })), null, 2)
+        : undefined;
 
     // Determine if editable based on permission
     const isEditable = document?.sharePermission === "edit";
@@ -66,18 +86,9 @@ const SharePage = ({ params }: SharePageProps) => {
     const onChange = async (content: string) => {
         if (!isEditable || !document) return;
 
-        setIsSaving(true);
-        try {
-            await update({
-                id: document._id,
-                content,
-            });
-        } catch (error) {
-            console.error("Failed to save:", error);
-            toast.error("Failed to save changes");
-        } finally {
-            setIsSaving(false);
-        }
+        // Content is now managed by blocks table via editor's documentId prop
+        // This onChange is kept for backward compatibility but doesn't update document.content
+        // The editor will automatically sync blocks via its internal syncBlocks call
     };
 
     if (document === undefined) {
@@ -97,17 +108,7 @@ const SharePage = ({ params }: SharePageProps) => {
     }
 
     if (document === null) {
-        return (
-            <div className="h-full flex items-center justify-center flex-col gap-4">
-                <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-bold">Document not found</h1>
-                    <p className="text-muted-foreground">
-                        This document doesn&apos;t exist, has been deleted, or the share link
-                        has expired.
-                    </p>
-                </div>
-            </div>
-        );
+        notFound();
     }
 
     // Generate anonymous user ID based on share session
@@ -213,11 +214,35 @@ const SharePage = ({ params }: SharePageProps) => {
 
                         {/* Editor with permission-based editability */}
                         <div id="editor-container">
-                            <Editor
-                                onChange={onChange}
-                                initialContent={document.content}
-                                editable={isEditable}
-                            />
+                            {isBlocksLoading ? (
+                                // Loading skeleton while blocks are being fetched
+                                <div className="pl-8 pt-4 space-y-3">
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-[90%]" />
+                                    <Skeleton className="h-4 w-[95%]" />
+                                    <Skeleton className="h-4 w-[85%]" />
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-[92%]" />
+                                </div>
+                            ) : hasBlocks ? (
+                                // Render editor with actual content
+                                <Editor
+                                    key={document._id}
+                                    onChange={onChange}
+                                    initialContent={contentFromBlocks}
+                                    editable={isEditable}
+                                    documentId={document._id}
+                                />
+                            ) : (
+                                // Empty state - no blocks yet
+                                <div className="pl-8 pt-4">
+                                    <p className="text-muted-foreground text-sm">
+                                        {isEditable
+                                            ? "Start typing to add content..."
+                                            : "This document has no content yet."}
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Footer info */}

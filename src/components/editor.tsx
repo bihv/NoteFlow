@@ -14,23 +14,32 @@ import { BlockNoteView } from "@blocknote/mantine";
 import { codeBlockOptions } from "@blocknote/code-block";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import { Sparkles, Edit, ArrowRight, FileText, Layout, MessageSquare } from "lucide-react";
 import { OutlineDialog, TemplateDialog, CustomPromptDialog } from "@/components/ai/ai-generation-dialogs";
 import { SelectionAIDialog } from "@/components/ai/selection-ai-dialog";
 import { expandText, improveText, continueText } from "@/lib/ai-generate-client";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 export interface EditorProps {
     onChange: (value: string) => void;
     initialContent?: string;
     editable?: boolean;
+    documentId?: Id<"documents">; // Optional for now (for backward compatibility)
 }
 
-export const Editor = ({ onChange, initialContent, editable }: EditorProps) => {
+export const Editor = ({ onChange, initialContent, editable, documentId }: EditorProps) => {
     const { resolvedTheme } = useTheme();
     const previousImagesRef = useRef<Set<string>>(new Set());
     const isInitializedRef = useRef(false);
+
+    // Block sync mutation (optional - may not exist if types not generated yet)
+    const syncBlocks = useMutation(
+        (api as any).blocks?.syncBlocks || (() => Promise.resolve())
+    );
 
     // AI generation dialog states
     const [showOutlineDialog, setShowOutlineDialog] = useState(false);
@@ -131,6 +140,32 @@ export const Editor = ({ onChange, initialContent, editable }: EditorProps) => {
             }
         }
     }, [initialContent]);
+
+    // Debounced block sync function
+    const debouncedSyncBlocks = useMemo(() => {
+        let timeoutId: NodeJS.Timeout;
+        return (docId: Id<"documents">, blocks: Block[]) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                // Only sync if blocks API is available
+                if ((api as any).blocks?.syncBlocks) {
+                    syncBlocks({ documentId: docId, blocks })
+                        .catch((error) => {
+                            console.error("Failed to sync blocks:", error);
+                            // Silent fail - document.content is still updated via onChange
+                        });
+                }
+            }, 2000); // 2 second debounce
+        };
+    }, [syncBlocks]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            // Cancel any pending sync on unmount
+        };
+    }, []);
+
 
     // Helper: Get selected text from editor
     const getSelectedText = (editor: BlockNoteEditor): string => {
@@ -375,7 +410,13 @@ export const Editor = ({ onChange, initialContent, editable }: EditorProps) => {
 
                         previousImagesRef.current = currentUrls;
 
+                        // Update document.content (hybrid approach)
                         onChange(content);
+
+                        // Sync blocks to database (debounced)
+                        if (documentId && editable) {
+                            debouncedSyncBlocks(documentId, editor.document);
+                        }
                     }}
                     slashMenu={false}
                 >

@@ -164,13 +164,17 @@
         rgb(236, 72, 153) 100%);
   }
 
-  /* BlockNote Editor styling - ensure background matches page in dark mode */
+  /* BlockNote Editor styling - transparent background in dark mode */
   & .bn-container {
-    background: hsl(var(--background));
+    background: transparent !important;
   }
 
   & .bn-editor {
-    background: hsl(var(--background));
+    background: transparent !important;
+  }
+
+  & .bn-block-outer {
+    background: transparent !important;
   }
 
   & .gradient-bg {
@@ -216,16 +220,27 @@
 }
 
 @utility bn-container {
+  /* BlockNote Editor styling - transparent background in all modes */
+  background: transparent !important;
 
-  /* BlockNote Editor styling - ensure background matches page in dark mode */
   .dark & {
-    background: hsl(var(--background));
+    background: transparent !important;
   }
 }
 
 @utility bn-editor {
+  background: transparent !important;
+
   .dark & {
-    background: hsl(var(--background));
+    background: transparent !important;
+  }
+}
+
+@utility bn-block-outer {
+  background: transparent !important;
+
+  .dark & {
+    background: transparent !important;
   }
 }
 
@@ -588,4 +603,13 @@
   }
 
   /* Additional utility classes */
+}
+
+/* Force BlockNote Editor transparency - global override */
+.bn-container,
+.bn-editor,
+.bn-block-outer,
+[data-node-type="blockContainer"] {
+  background: transparent !important;
+  background-color: transparent !important;
 }
