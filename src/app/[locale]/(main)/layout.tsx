@@ -10,6 +10,8 @@ import { TabKeyboardShortcuts } from "@/components/tabs/tab-keyboard-shortcuts";
 import { TabsProvider } from "@/contexts/tabs-context";
 import { useEffect } from "react";
 
+import { cn } from "@/lib/utils";
+
 export default function MainLayout({
     children,
 }: {
@@ -51,7 +53,7 @@ export default function MainLayout({
                 <Navigation />
                 <div className="flex-1 h-full max-w-full overflow-x-hidden flex flex-col transition-all duration-300" style={{ marginLeft: 'var(--sidebar-width, 240px)' }}>
                     <TabBar />
-                    <main className="flex-1">
+                    <main className={cn("flex-1 h-full", isDocumentRoute ? "overflow-hidden" : "overflow-y-auto")}>
                         {isDocumentRoute ? <TabContainer /> : children}
                     </main>
                 </div>

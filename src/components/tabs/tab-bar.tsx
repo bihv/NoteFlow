@@ -135,7 +135,7 @@ export function TabBar() {
 
     return (
         <div
-            className="tab-bar border-b border-white/10 bg-secondary/95 backdrop-blur-md"
+            className="tab-bar border-b border-white/10 bg-secondary/95 backdrop-blur-md sticky top-0 z-50"
             style={{
                 paddingLeft: isSidebarCollapsed ? '56px' : '0',
             }}
