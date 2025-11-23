@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Build context from document
-        let systemContext = "You are a helpful AI assistant integrated into NoteFlow, a note-taking application. You help users understand, analyze, and work with their documents.";
+        let systemContext = "You are a helpful AI assistant integrated into Nova, a note-taking application. You help users understand, analyze, and work with their documents.";
 
         if (documentContent) {
             // Extract plain text from BlockNote content

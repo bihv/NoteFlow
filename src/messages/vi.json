@@ -24,6 +24,11 @@
     "settings": {
         "title": "Cài đặt",
         "description": "Quản lý cài đặt tài khoản và tùy chọn của bạn",
+        "nav": {
+            "account": "Tài khoản",
+            "customization": "Tùy chỉnh",
+            "data": "Dữ liệu"
+        },
         "storage": {
             "title": "Dung lượng",
             "description": "Quản lý dung lượng lưu trữ của bạn",

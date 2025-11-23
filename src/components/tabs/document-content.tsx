@@ -134,7 +134,7 @@ function DocumentContentComponent({ documentId, isActive }: DocumentContentProps
         <div className={`pb-40 transition-all duration-300 ${showAIChat ? 'pr-96' : ''}`}>
             <Cover url={document.coverImage} />
             <div className="md:max-w-3xl lg:max-w-4xl mx-auto">
-                <Toolbar initialData={document} />
+                <Toolbar initialData={document} documentContent={contentFromBlocks} />
                 {isBlocksLoading ? (
                     // Loading skeleton while blocks are being fetched
                     <div className="pl-8 pt-4 space-y-3">

@@ -11,7 +11,7 @@ export interface Tab {
     icon?: string;
 }
 
-const STORAGE_KEY = "noteflow-tabs";
+const STORAGE_KEY = "nova-tabs";
 
 export function useTabs() {
     // Get maxTabs from unified preferences

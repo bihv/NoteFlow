@@ -24,6 +24,11 @@
     "settings": {
         "title": "Settings",
         "description": "Manage your account settings and preferences",
+        "nav": {
+            "account": "Account",
+            "customization": "Customization",
+            "data": "Data & Storage"
+        },
         "storage": {
             "title": "Storage",
             "description": "Manage your storage usage",

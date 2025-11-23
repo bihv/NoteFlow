@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "@/lib/navigation";
 import { useMutation } from "convex/react";
 import { PlusCircle, ChevronLeft, ChevronRight } from "lucide-react";
@@ -17,6 +17,7 @@ export function TabBar() {
     const pathname = usePathname();
     const create = useMutation(api.documents.create);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     const {
         tabs,
@@ -26,6 +27,28 @@ export function TabBar() {
         switchTab,
         maxTabs,
     } = useTabs();
+
+    // Monitor sidebar collapse state via CSS variable
+    useEffect(() => {
+        const checkSidebarWidth = () => {
+            const width = getComputedStyle(document.documentElement)
+                .getPropertyValue('--sidebar-width')
+                .trim();
+            setIsSidebarCollapsed(width === '0px');
+        };
+
+        // Initial check
+        checkSidebarWidth();
+
+        // Use MutationObserver to watch for style changes
+        const observer = new MutationObserver(checkSidebarWidth);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['style'],
+        });
+
+        return () => observer.disconnect();
+    }, []);
 
     // Sync active tab with current route
     useEffect(() => {
@@ -111,7 +134,12 @@ export function TabBar() {
     };
 
     return (
-        <div className="tab-bar border-b border-white/10 bg-secondary/95 backdrop-blur-md">
+        <div
+            className="tab-bar border-b border-white/10 bg-secondary/95 backdrop-blur-md"
+            style={{
+                paddingLeft: isSidebarCollapsed ? '56px' : '0',
+            }}
+        >
             <div className="flex items-center h-10">
                 {tabs.length > 0 && (
                     <>

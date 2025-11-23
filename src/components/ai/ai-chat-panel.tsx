@@ -354,7 +354,7 @@ export const AIChatPanel = ({
                         {/* AI Avatar with gradient border animation */}
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur-sm opacity-75 animate-pulse"></div>
-                            <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg">
+                            <div className="relative p-2.5 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg">
                                 <Bot className="h-5 w-5 text-white" />
                             </div>
                         </div>

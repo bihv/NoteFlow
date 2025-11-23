@@ -16,7 +16,7 @@ import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
-import { Sparkles, Edit, ArrowRight, FileText, Layout, MessageSquare } from "lucide-react";
+import { Sparkles, Edit, ArrowRight, FileText, Layout, MessageSquare, List } from "lucide-react";
 import { OutlineDialog, TemplateDialog, CustomPromptDialog } from "@/components/ai/ai-generation-dialogs";
 import { SelectionAIDialog } from "@/components/ai/selection-ai-dialog";
 import { expandText, improveText, continueText } from "@/lib/ai-generate-client";
@@ -326,6 +326,7 @@ export const Editor = ({ onChange, initialContent, editable, documentId }: Edito
             subtext: "Generate outline-solid from topic",
             group: "AI Assistant",
             aliases: ["ai", "outline-solid", "structure"],
+            icon: <List size={18} />,
         },
         {
             title: "Insert template",
@@ -336,6 +337,7 @@ export const Editor = ({ onChange, initialContent, editable, documentId }: Edito
             subtext: "Meeting notes, project plan, etc.",
             group: "AI Assistant",
             aliases: ["ai", "template"],
+            icon: <Layout size={18} />,
         },
         {
             title: "Custom prompt",
@@ -348,6 +350,7 @@ export const Editor = ({ onChange, initialContent, editable, documentId }: Edito
             subtext: "Generate with your own instructions",
             group: "AI Assistant",
             aliases: ["ai", "custom", "prompt"],
+            icon: <MessageSquare size={18} />,
         },
     ];
 

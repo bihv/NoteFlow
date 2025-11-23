@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
             cloudinary.uploader
                 .upload_stream(
                     {
-                        folder: "noteflow",
+                        folder: "nova",
                         resource_type: "image",
                     },
                     (error, result) => {

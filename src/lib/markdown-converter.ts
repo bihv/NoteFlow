@@ -3,7 +3,7 @@ import { Doc } from "@/convex/_generated/dataModel";
 type Document = Doc<"documents">;
 
 export function convertToMarkdown(documents: Document[]): string {
-    let markdown = `# NoteFlow Export\n\n`;
+    let markdown = `# Nova Export\n\n`;
     markdown += `Exported: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n\n`;
     markdown += `Total Documents: ${documents.length}\n\n`;
     markdown += `---\n\n`;

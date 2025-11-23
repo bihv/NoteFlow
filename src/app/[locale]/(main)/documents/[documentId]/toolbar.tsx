@@ -18,9 +18,10 @@ import { HistoryModal } from "@/components/modals/history-modal";
 interface ToolbarProps {
     initialData: Doc<"documents">;
     preview?: boolean;
+    documentContent?: string;
 }
 
-export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
+export const Toolbar = ({ initialData, preview, documentContent }: ToolbarProps) => {
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [value, setValue] = useState(initialData.title);
@@ -159,6 +160,7 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
                 tags={initialData.tags || []}
                 onUpdateTags={handleUpdateTags}
                 documentTitle={initialData.title}
+                documentContent={documentContent}
             />
             <ShareModal
                 isOpen={showShareModal}

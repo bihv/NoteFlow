@@ -31,7 +31,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 // LocalStorage keys
-const STORAGE_KEY = "noteflow-preferences";
+const STORAGE_KEY = "nova-preferences";
 
 // Helper functions for localStorage
 function getLocalPreferences(): UserPreferences | null {

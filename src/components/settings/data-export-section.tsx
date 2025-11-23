@@ -53,10 +53,10 @@ export function DataExportSection() {
 
             if (format === "json") {
                 const json = JSON.stringify(documents, null, 2);
-                downloadFile(json, `noteflow-active-${timestamp}.json`, "application/json");
+                downloadFile(json, `nova-active-${timestamp}.json`, "application/json");
             } else {
                 const markdown = convertToMarkdown(documents);
-                downloadFile(markdown, `noteflow-active-${timestamp}.md`, "text/markdown");
+                downloadFile(markdown, `nova-active-${timestamp}.md`, "text/markdown");
             }
 
             toast.success(`Exported ${documents.length} active notes as ${format.toUpperCase()}!`);
@@ -76,10 +76,10 @@ export function DataExportSection() {
 
             if (format === "json") {
                 const json = JSON.stringify(documents, null, 2);
-                downloadFile(json, `noteflow-all-${timestamp}.json`, "application/json");
+                downloadFile(json, `nova-all-${timestamp}.json`, "application/json");
             } else {
                 const markdown = convertToMarkdown(documents);
-                downloadFile(markdown, `noteflow-all-${timestamp}.md`, "text/markdown");
+                downloadFile(markdown, `nova-all-${timestamp}.md`, "text/markdown");
             }
 
             toast.success(`Exported ${documents.length} notes as ${format.toUpperCase()}!`);

@@ -3,8 +3,9 @@
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
-import { ChevronsLeft, MenuIcon, Search, Settings, Trash, X } from "lucide-react";
+import { ChevronsLeft, MenuIcon, Search, Settings, Trash, X, LogOut } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
+import { SignOutButton } from "@clerk/nextjs";
 
 import { cn } from "@/lib/utils";
 import { api } from "@/convex/_generated/api";
@@ -12,6 +13,8 @@ import { UserItem } from "./user-item";
 import { DocumentList } from "./document-list";
 
 import { TrashModal, useTrashModal } from "../documents/trash-modal";
+import { SettingsModal } from "@/components/settings/settings-modal";
+import { useSettingsModal } from "@/hooks/use-settings-modal";
 
 export const Navigation = () => {
     const pathname = usePathname();
@@ -20,6 +23,7 @@ export const Navigation = () => {
     const isMobile = useMediaQuery("(max-width: 768px)");
     const create = useMutation(api.documents.create);
     const { isOpen, onOpen, onClose } = useTrashModal();
+    const { isOpen: isSettingsOpen, onOpen: onSettingsOpen, onClose: onSettingsClose } = useSettingsModal();
 
     const isResizingRef = useRef(false);
     const sidebarRef = useRef<ElementRef<"aside">>(null);
@@ -261,9 +265,9 @@ export const Navigation = () => {
                     {/* Settings - Full width row */}
                     <div className="px-1">
                         <div
-                            onClick={() => router.push("/settings")}
+                            onClick={onSettingsOpen}
                             role="button"
-                            className="text-sm p-2 hover:bg-accent/50 flex items-center w-full rounded-md text-muted-foreground transition-all duration-200 nav-item-hover"
+                            className="text-sm p-2 hover:bg-accent/50 flex items-center w-full rounded-md text-muted-foreground transition-all duration-200 nav-item-hover cursor-pointer"
                         >
                             <Settings className="h-4 w-4 mr-2" />
                             <span className="text-xs">Settings</span>
@@ -275,13 +279,25 @@ export const Navigation = () => {
                         <div
                             onClick={onOpen}
                             role="button"
-                            className="text-sm p-2 hover:bg-accent/50 flex items-center w-full rounded-md text-muted-foreground transition-all duration-200 nav-item-hover"
+                            className="text-sm p-2 hover:bg-accent/50 flex items-center w-full rounded-md text-muted-foreground transition-all duration-200 nav-item-hover cursor-pointer"
                         >
                             <Trash className="h-4 w-4 mr-2" />
                             <span className="text-xs">Trash</span>
                         </div>
                     </div>
 
+                    {/* Logout - Full width row */}
+                    <div className="px-1">
+                        <SignOutButton>
+                            <div
+                                role="button"
+                                className="text-sm p-2 hover:bg-accent/50 flex items-center w-full rounded-md text-muted-foreground transition-all duration-200 nav-item-hover cursor-pointer"
+                            >
+                                <LogOut className="h-4 w-4 mr-2" />
+                                <span className="text-xs">Logout</span>
+                            </div>
+                        </SignOutButton>
+                    </div>
 
                 </div>
                 <div
@@ -311,6 +327,7 @@ export const Navigation = () => {
                 )}
             </div>
             <TrashModal isOpen={isOpen} onClose={onClose} />
+            <SettingsModal isOpen={isSettingsOpen} onClose={onSettingsClose} />
         </>
     );
 };

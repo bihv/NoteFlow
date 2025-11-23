@@ -20,7 +20,7 @@ const DEFAULT_SETTINGS: HistorySettings = {
     historyShowNotifications: false,
 };
 
-const STORAGE_KEY = "noteflow-history-settings";
+const STORAGE_KEY = "nova-history-settings";
 
 // Helper function to get settings from localStorage
 function getLocalSettings(): HistorySettings | null {
