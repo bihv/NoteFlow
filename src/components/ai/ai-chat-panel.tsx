@@ -47,6 +47,8 @@ export const AIChatPanel = ({
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [isContinuing, setIsContinuing] = useState(false);
+    const [continuationInfo, setContinuationInfo] = useState<{ count: number; chars: number } | null>(null);
     const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -157,6 +159,8 @@ export const AIChatPanel = ({
                             const data = line.slice(6).trim();
 
                             if (data === "[DONE]") {
+                                setIsContinuing(false);
+                                setContinuationInfo(null);
                                 break;
                             }
 
@@ -167,6 +171,7 @@ export const AIChatPanel = ({
                                     throw new Error(parsed.error);
                                 }
 
+                                // Handle chunk data (new format)
                                 if (parsed.chunk) {
                                     assistantMessage += parsed.chunk;
                                     setMessages((prev) =>
@@ -176,6 +181,31 @@ export const AIChatPanel = ({
                                                 : msg
                                         )
                                     );
+                                }
+
+                                // Handle status updates (continuation, done, etc.)
+                                if (parsed.status) {
+                                    if (parsed.status === 'continuing') {
+                                        setIsContinuing(true);
+                                        setContinuationInfo({
+                                            count: parsed.continuationCount || 0,
+                                            chars: parsed.chars || 0,
+                                        });
+                                        // Log token info if available
+                                        if (parsed.tokens) {
+                                            console.log(`[AI] Continuation ${parsed.continuationCount}: ${parsed.tokens} tokens`);
+                                        }
+                                    } else if (parsed.status === 'done') {
+                                        setIsContinuing(false);
+                                        setContinuationInfo(null);
+                                        // Log final stats
+                                        if (parsed.tokens) {
+                                            console.log(`[AI] Completed: ${parsed.tokens} tokens total, ${parsed.continuations || 0} continuations`);
+                                        }
+                                    } else if (parsed.status === 'max_continuations_reached') {
+                                        console.warn('Max continuations reached:', parsed.message);
+                                        toast.warning(parsed.message || 'Response reached maximum length limit');
+                                    }
                                 }
                             } catch (parseError: any) {
                                 console.warn("Failed to parse SSE data:", data, parseError.message);
@@ -502,7 +532,10 @@ export const AIChatPanel = ({
                         <div className="flex-1 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800/50">
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-medium bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                    AI is thinking
+                                    {isContinuing
+                                        ? `Generating more content... (Part ${continuationInfo?.count || 1})`
+                                        : 'AI is thinking'
+                                    }
                                 </span>
                                 <div className="flex items-center gap-1">
                                     <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "0s", animationDuration: "0.6s" }}></div>

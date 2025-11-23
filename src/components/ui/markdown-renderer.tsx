@@ -10,7 +10,7 @@ interface MarkdownRendererProps {
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
     return (
-        <div className="markdown-content prose prose-sm dark:prose-invert max-w-none">
+        <div className="markdown-content prose prose-sm dark:prose-invert w-full">
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkBreaks]}
                 rehypePlugins={[rehypePrism]}
@@ -57,11 +57,11 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
                             </blockquote>
                         );
                     },
-                    // Tables
+                    // Tables with horizontal scroll
                     table({ node, children, ...props }: any) {
                         return (
-                            <div className="overflow-x-auto">
-                                <table className="border-collapse border border-border w-full" {...props}>
+                            <div className="overflow-x-auto my-4 block" style={{ maxWidth: '100%' }}>
+                                <table className="border-collapse border border-border" {...props}>
                                     {children}
                                 </table>
                             </div>
@@ -69,14 +69,14 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
                     },
                     th({ node, children, ...props }: any) {
                         return (
-                            <th className="border border-border px-4 py-2 bg-muted font-semibold" {...props}>
+                            <th className="border border-border px-4 py-2 bg-muted font-semibold whitespace-normal" {...props}>
                                 {children}
                             </th>
                         );
                     },
                     td({ node, children, ...props }: any) {
                         return (
-                            <td className="border border-border px-4 py-2" {...props}>
+                            <td className="border border-border px-4 py-2 whitespace-normal break-words max-w-xs" {...props}>
                                 {children}
                             </td>
                         );

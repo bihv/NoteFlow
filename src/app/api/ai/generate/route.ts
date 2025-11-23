@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { generateTextStream } from "@/lib/gemini";
+import { generateTextStreamWithContinuation } from "@/lib/gemini";
 
 export const runtime = "nodejs";
 
@@ -190,15 +190,22 @@ export async function POST(request: NextRequest) {
         const stream = new ReadableStream({
             async start(controller) {
                 try {
-                    for await (const chunk of generateTextStream(fullPrompt, {
+                    for await (const event of generateTextStreamWithContinuation(fullPrompt, {
                         temperature: 0.7,
                         maxOutputTokens: 8192,
                     })) {
-                        const data = `data: ${JSON.stringify({ chunk })}\n\n`;
-                        controller.enqueue(encoder.encode(data));
+                        if (event.type === 'chunk') {
+                            // Send text chunk
+                            const data = `data: ${JSON.stringify(event.data)}\n\n`;
+                            controller.enqueue(encoder.encode(data));
+                        } else if (event.type === 'status') {
+                            // Send status update (continuing, done, etc.)
+                            const data = `data: ${JSON.stringify(event.data)}\n\n`;
+                            controller.enqueue(encoder.encode(data));
+                        }
                     }
 
-                    // Send completion signal
+                    // Send final completion signal
                     controller.enqueue(encoder.encode("data: [DONE]\n\n"));
                     controller.close();
                 } catch (error: any) {

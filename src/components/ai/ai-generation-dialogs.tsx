@@ -322,9 +322,11 @@ export const TemplateDialog = ({ isOpen, onClose, onInsert }: TemplateDialogProp
                     {/* Step 3: Preview Generated Content */}
                     {step === 'preview' && (
                         <div className="space-y-4">
-                            <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto wrap-break-word">
+                            <div className="border rounded-lg p-4 max-h-[400px] overflow-y-auto">
                                 {generatedContent ? (
-                                    <MarkdownRenderer content={generatedContent} />
+                                    <div className="w-full overflow-x-hidden">
+                                        <MarkdownRenderer content={generatedContent} />
+                                    </div>
                                 ) : (
                                     <div className="flex items-center justify-center py-8">
                                         <Loader2 className="h-6 w-6 animate-spin text-purple-600" />

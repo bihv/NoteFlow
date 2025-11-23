@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { chatStream } from "@/lib/gemini";
+import { chatStreamWithContinuation } from "@/lib/gemini";
 
 export const runtime = "nodejs";
 
@@ -80,14 +80,21 @@ export async function POST(request: NextRequest) {
         const stream = new ReadableStream({
             async start(controller) {
                 try {
-                    for await (const chunk of chatStream(messages, {
+                    for await (const event of chatStreamWithContinuation(messages, {
                         temperature: 0.7,
                     })) {
-                        const data = `data: ${JSON.stringify({ chunk })}\n\n`;
-                        controller.enqueue(encoder.encode(data));
+                        if (event.type === 'chunk') {
+                            // Send text chunk
+                            const data = `data: ${JSON.stringify(event.data)}\n\n`;
+                            controller.enqueue(encoder.encode(data));
+                        } else if (event.type === 'status') {
+                            // Send status update (continuing, done, etc.)
+                            const data = `data: ${JSON.stringify(event.data)}\n\n`;
+                            controller.enqueue(encoder.encode(data));
+                        }
                     }
 
-                    // Send completion signal
+                    // Send final completion signal
                     controller.enqueue(encoder.encode("data: [DONE]\n\n"));
                     controller.close();
                 } catch (error: any) {
