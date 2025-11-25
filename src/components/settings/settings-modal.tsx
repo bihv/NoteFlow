@@ -10,6 +10,7 @@ import { DataExportSection } from "@/components/settings/data-export-section";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { AppearanceSection } from "@/components/settings/appearance-section";
 import { TabsSettingsSection } from "@/components/settings/tabs-settings-section";
+import { AISettingsSection } from "@/components/settings/ai-settings-section";
 import { HistorySettingsSection } from "@/components/settings/history-settings-section";
 import { SettingsLayout } from "@/components/settings/settings-layout";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
         profile: <ProfileSection user={user} />,
         appearance: <AppearanceSection />,
         tabs: <TabsSettingsSection />,
+        ai: <AISettingsSection />,
         history: <HistorySettingsSection />,
         storage: <StorageSection />,
         "data-export": <DataExportSection />,

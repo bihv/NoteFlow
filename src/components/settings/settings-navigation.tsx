@@ -8,13 +8,15 @@ import {
     LayoutGrid,
     History,
     Database,
-    FileDown
+    FileDown,
+    Sparkles
 } from "lucide-react";
 
 export type SettingsSection =
     | "profile"
     | "appearance"
     | "tabs"
+    | "ai"
     | "history"
     | "storage"
     | "data-export";
@@ -57,6 +59,12 @@ export function SettingsNavigation({
             id: "tabs",
             icon: <LayoutGrid className="w-4 h-4" />,
             labelKey: "settings.tabs.title",
+            group: "customization"
+        },
+        {
+            id: "ai",
+            icon: <Sparkles className="w-4 h-4" />,
+            labelKey: "settings.ai.title",
             group: "customization"
         },
         {

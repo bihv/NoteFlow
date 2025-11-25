@@ -7,7 +7,8 @@ const intlMiddleware = createIntlMiddleware(routing);
 const isPublicRoute = createRouteMatcher([
     '/:locale/sign-in(.*)',
     '/:locale/sign-up(.*)',
-    '/:locale/s/:path*'
+    '/s/(.*)',
+    '/:locale/s/(.*)'
 ]);
 
 export default clerkMiddleware(async (auth, request) => {

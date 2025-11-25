@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { chatStreamWithContinuation } from "@/lib/gemini";
+import { chatStreamWithContinuation, generateLongContentInChunks } from "@/lib/gemini";
 
 export const runtime = "nodejs";
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { message, documentContent, documentTitle, history } = body;
+        const { message, documentContent, documentTitle, history, mode } = body;
 
         if (!message) {
             return new Response(
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
                 plainText = documentContent;
             }
 
-            systemContext += `\n\nCurrent Document Context:\nTitle: ${documentTitle || "Untitled"}\nContent: ${plainText}`;
+            systemContext += `\\n\\nCurrent Document Context:\\nTitle: ${documentTitle || "Untitled"}\\nContent: ${plainText}`;
         }
 
         // Format conversation history
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
         // Add current user message with context
         const userMessage = documentContent
-            ? `${systemContext}\n\nUser question: ${message}`
+            ? `${systemContext}\\n\\nUser question: ${message}`
             : message;
 
         messages.push({
@@ -80,25 +80,37 @@ export async function POST(request: NextRequest) {
         const stream = new ReadableStream({
             async start(controller) {
                 try {
-                    for await (const event of chatStreamWithContinuation(messages, {
-                        temperature: 0.7,
-                    })) {
-                        if (event.type === 'chunk') {
-                            // Send text chunk
-                            const data = `data: ${JSON.stringify(event.data)}\n\n`;
+                    // Branch based on mode
+                    if (mode === "chunks") {
+                        // Chunk-based generation for long-form content
+                        for await (const event of generateLongContentInChunks(message, {
+                            temperature: 0.7,
+                        })) {
+                            const data = `data: ${JSON.stringify(event.data)}\\n\\n`;
                             controller.enqueue(encoder.encode(data));
-                        } else if (event.type === 'status') {
-                            // Send status update (continuing, done, etc.)
-                            const data = `data: ${JSON.stringify(event.data)}\n\n`;
-                            controller.enqueue(encoder.encode(data));
+                        }
+                    } else {
+                        // Normal chat mode with continuation
+                        for await (const event of chatStreamWithContinuation(messages, {
+                            temperature: 0.7,
+                        })) {
+                            if (event.type === 'chunk') {
+                                // Send text chunk
+                                const data = `data: ${JSON.stringify(event.data)}\\n\\n`;
+                                controller.enqueue(encoder.encode(data));
+                            } else if (event.type === 'status') {
+                                // Send status update (continuing, done, etc.)
+                                const data = `data: ${JSON.stringify(event.data)}\\n\\n`;
+                                controller.enqueue(encoder.encode(data));
+                            }
                         }
                     }
 
                     // Send final completion signal
-                    controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                    controller.enqueue(encoder.encode("data: [DONE]\\n\\n"));
                     controller.close();
                 } catch (error: any) {
-                    const errorData = `data: ${JSON.stringify({ error: error.message || "Chat failed" })}\n\n`;
+                    const errorData = `data: ${JSON.stringify({ error: error.message || "Chat failed" })}\\n\\n`;
                     controller.enqueue(encoder.encode(errorData));
                     controller.close();
                 }

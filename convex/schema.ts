@@ -93,6 +93,12 @@ export default defineSchema({
         // Appearance settings (optional for backward compatibility)
         theme: v.optional(v.string()), // "light" | "dark" | "system"
         locale: v.optional(v.string()), // "en" | "vi"
+        // AI settings (optional for backward compatibility)
+        aiModel: v.optional(v.string()), // "flash" | "pro"
+        aiTemperature: v.optional(v.number()), // 0.0 - 1.0
+        aiGenerationMode: v.optional(v.string()), // "normal" | "chunks"
+        aiMaxContinuations: v.optional(v.number()), // 1 - 10
+        aiTimeoutMs: v.optional(v.number()), // 60000 - 900000 (1-15min)
     })
         .index("by_user", ["userId"]),
 });

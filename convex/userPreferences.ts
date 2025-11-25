@@ -14,6 +14,12 @@ const DEFAULT_SETTINGS = {
     // Appearance
     theme: "system" as const,
     locale: "en" as const,
+    // AI
+    aiModel: "flash" as const,
+    aiTemperature: 0.7,
+    aiGenerationMode: "normal" as const,
+    aiMaxContinuations: 5,
+    aiTimeoutMs: 300000, // 5 minutes
 };
 
 /**
@@ -46,6 +52,11 @@ export const getUserPreferences = query({
                 maxTabs: preferences.maxTabs,
                 theme: preferences.theme,
                 locale: preferences.locale,
+                aiModel: preferences.aiModel,
+                aiTemperature: preferences.aiTemperature,
+                aiGenerationMode: preferences.aiGenerationMode,
+                aiMaxContinuations: preferences.aiMaxContinuations,
+                aiTimeoutMs: preferences.aiTimeoutMs,
             };
         }
 
@@ -111,6 +122,12 @@ export const updateUserPreferences = mutation({
         // Appearance settings
         theme: v.optional(v.string()),
         locale: v.optional(v.string()),
+        // AI settings
+        aiModel: v.optional(v.string()),
+        aiTemperature: v.optional(v.number()),
+        aiGenerationMode: v.optional(v.string()),
+        aiMaxContinuations: v.optional(v.number()),
+        aiTimeoutMs: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
@@ -166,6 +183,43 @@ export const updateUserPreferences = mutation({
             }
         }
 
+        // Validate AI settings
+        if (args.aiModel !== undefined) {
+            const validModels = ["flash", "pro"];
+            if (!validModels.includes(args.aiModel)) {
+                throw new Error("Invalid AI model. Must be one of: flash, pro");
+            }
+        }
+
+        if (args.aiTemperature !== undefined) {
+            // Round to 1 decimal place and validate range
+            const temp = Math.round(args.aiTemperature * 10) / 10;
+            if (temp < 0 || temp > 1) {
+                throw new Error("Invalid temperature. Must be between 0.0 and 1.0");
+            }
+            args.aiTemperature = temp;
+        }
+
+        if (args.aiGenerationMode !== undefined) {
+            const validModes = ["normal", "chunks"];
+            if (!validModes.includes(args.aiGenerationMode)) {
+                throw new Error("Invalid generation mode. Must be one of: normal, chunks");
+            }
+        }
+
+        if (args.aiMaxContinuations !== undefined) {
+            if (args.aiMaxContinuations < 1 || args.aiMaxContinuations > 10) {
+                throw new Error("Invalid max continuations. Must be between 1 and 10");
+            }
+        }
+
+        if (args.aiTimeoutMs !== undefined) {
+            const validTimeouts = [60000, 180000, 300000, 600000, 900000];
+            if (!validTimeouts.includes(args.aiTimeoutMs)) {
+                throw new Error("Invalid timeout. Must be one of: 1, 3, 5, 10, 15 minutes");
+            }
+        }
+
         // Get existing preferences
         const existing = await ctx.db
             .query("userPreferences")
@@ -181,6 +235,11 @@ export const updateUserPreferences = mutation({
             maxTabs: args.maxTabs ?? existing?.maxTabs ?? DEFAULT_SETTINGS.maxTabs,
             theme: args.theme ?? existing?.theme ?? DEFAULT_SETTINGS.theme,
             locale: args.locale ?? existing?.locale ?? DEFAULT_SETTINGS.locale,
+            aiModel: args.aiModel ?? existing?.aiModel ?? DEFAULT_SETTINGS.aiModel,
+            aiTemperature: args.aiTemperature ?? existing?.aiTemperature ?? DEFAULT_SETTINGS.aiTemperature,
+            aiGenerationMode: args.aiGenerationMode ?? existing?.aiGenerationMode ?? DEFAULT_SETTINGS.aiGenerationMode,
+            aiMaxContinuations: args.aiMaxContinuations ?? existing?.aiMaxContinuations ?? DEFAULT_SETTINGS.aiMaxContinuations,
+            aiTimeoutMs: args.aiTimeoutMs ?? existing?.aiTimeoutMs ?? DEFAULT_SETTINGS.aiTimeoutMs,
         };
 
         if (existing) {

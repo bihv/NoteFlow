@@ -154,53 +154,8 @@ export async function generateText(
 }
 
 /**
- * Generate streaming text with Gemini API
- * Returns an async generator that yields text chunks
- */
-export async function* generateTextStream(
-    prompt: string,
-    options?: {
-        model?: string;
-        temperature?: number;
-        maxOutputTokens?: number;
-    }
-): AsyncGenerator<string, void, unknown> {
-    if (!rateLimiter.canMakeRequest()) {
-        throw new Error("Rate limit exceeded. Please try again later.");
-    }
-
-    try {
-        const model = getModel(options?.model);
-        rateLimiter.recordRequest();
-
-        const result = await model.generateContentStream({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig: {
-                temperature: options?.temperature ?? 0.7,
-                maxOutputTokens: options?.maxOutputTokens ?? 8192,
-            },
-        });
-
-        for await (const chunk of result.stream) {
-            const chunkText = chunk.text();
-            if (chunkText) {
-                yield chunkText;
-            }
-        }
-    } catch (error: any) {
-        console.error("Gemini API streaming error:", error);
-
-        if (error.message?.includes("RATE_LIMIT")) {
-            throw new Error("API rate limit exceeded. Please try again in a moment.");
-        }
-
-        throw new Error(error.message || "Failed to generate streaming text");
-    }
-}
-
-/**
  * Enhanced streaming with automatic continuation for long responses
- * Automatically detects when response hits token limit and continues
+ * Wrapper around chatStreamWithContinuation for simple prompt-based generation
  */
 export async function* generateTextStreamWithContinuation(
     prompt: string,
@@ -211,149 +166,19 @@ export async function* generateTextStreamWithContinuation(
         maxContinuations?: number;
     }
 ): AsyncGenerator<{ type: 'chunk' | 'status'; data: any }, void, unknown> {
-    const maxContinuations = options?.maxContinuations ?? 5;
-    const originalPrompt = prompt; // Preserve original request
-    let continuationCount = 0;
-    let accumulatedText = "";
+    // Convert prompt to messages array and delegate to unified function
+    const messages = [{ role: "user" as const, text: prompt }];
 
-    while (continuationCount <= maxContinuations) {
-        if (!rateLimiter.canMakeRequest()) {
-            throw new Error("Rate limit exceeded. Please try again later.");
-        }
-
-        try {
-            const model = getModel(options?.model);
-            rateLimiter.recordRequest();
-
-            // Build prompt based on whether this is first request or continuation
-            let currentPrompt: string;
-            if (continuationCount === 0) {
-                // First request: use original prompt
-                currentPrompt = originalPrompt;
-            } else {
-                // Continuation: include original request + what we've generated so far
-                // Try to find a natural break point to avoid cutting mid-structure
-                let contextLength = Math.min(accumulatedText.length, 3000);
-                let contextStart = accumulatedText.length - contextLength;
-
-                // Try to find a paragraph break (double newline) near the start
-                const searchStart = Math.max(0, contextStart - 200);
-                const searchEnd = Math.min(accumulatedText.length, contextStart + 200);
-                const searchRegion = accumulatedText.substring(searchStart, searchEnd);
-                const paragraphBreak = searchRegion.lastIndexOf('\n\n');
-
-                if (paragraphBreak !== -1) {
-                    contextStart = searchStart + paragraphBreak + 2;
-                }
-
-                const recentContext = accumulatedText.substring(contextStart);
-
-                currentPrompt = `${originalPrompt}
-
-[CONTINUATION REQUEST - The previous response was cut off due to length limits. Continue from where it ended.]
-
-Already generated content (showing last ~${recentContext.length} characters):
-${recentContext}
-
-IMPORTANT INSTRUCTIONS:
-- Continue writing naturally from where the text ended above
-- Do NOT restart or repeat what was already written
-- Do NOT generate placeholder content (like repeated dashes, empty lines, etc.)
-- If you were in the middle of a table, complete it properly with actual content
-- If you were in the middle of a list, continue with actual items
-- Just provide the next meaningful content`;
-            }
-
-            const result = await model.generateContentStream({
-                contents: [{ role: "user", parts: [{ text: currentPrompt }] }],
-                generationConfig: {
-                    temperature: options?.temperature ?? 0.7,
-                    maxOutputTokens: options?.maxOutputTokens ?? 8192,
-                },
-            });
-
-            let chunkText = "";
-            let finishReason: string | null = null;
-            let usageMetadata: any = null;
-
-            for await (const chunk of result.stream) {
-                const text = chunk.text();
-                if (text) {
-                    chunkText += text;
-                    accumulatedText += text;
-                    yield { type: 'chunk', data: { chunk: text } };
-                }
-
-                // Track finish reason and usage metadata from candidates
-                if (chunk.candidates && chunk.candidates.length > 0) {
-                    const candidate = chunk.candidates[0];
-                    if (candidate.finishReason) {
-                        finishReason = candidate.finishReason;
-                    }
-                }
-
-                // Track usage metadata (available in final chunk)
-                if (chunk.usageMetadata) {
-                    usageMetadata = chunk.usageMetadata;
-                }
-            }
-
-            // Check if we need to continue
-            if (finishReason === "MAX_TOKENS" && continuationCount < maxContinuations) {
-                // Notify that we're continuing
-                yield {
-                    type: 'status',
-                    data: {
-                        status: 'continuing',
-                        continuationCount: continuationCount + 1,
-                        tokens: usageMetadata?.totalTokenCount || null,
-                        chars: accumulatedText.length,
-                    }
-                };
-
-                continuationCount++;
-
-                // Small delay to avoid rate limiting
-                await new Promise(resolve => setTimeout(resolve, 100));
-            } else {
-                // Done!
-                yield {
-                    type: 'status',
-                    data: {
-                        status: 'done',
-                        tokens: usageMetadata?.totalTokenCount || null,
-                        chars: accumulatedText.length,
-                        continuations: continuationCount,
-                        finishReason,
-                    }
-                };
-                break;
-            }
-        } catch (error: any) {
-            console.error("Gemini API streaming error:", error);
-
-            if (error.message?.includes("RATE_LIMIT")) {
-                throw new Error("API rate limit exceeded. Please try again in a moment.");
-            }
-
-            throw new Error(error.message || "Failed to generate streaming text");
-        }
-    }
-
-    // If we hit max continuations, warn the user
-    if (continuationCount >= maxContinuations) {
-        yield {
-            type: 'status',
-            data: {
-                status: 'max_continuations_reached',
-                message: 'Response reached maximum continuation limit. Some content may be truncated.',
-            }
-        };
-    }
+    yield* chatStreamWithContinuation(messages, {
+        model: options?.model,
+        temperature: options?.temperature,
+        maxContinuations: options?.maxContinuations,
+    });
 }
 
 /**
- * Enhanced chat streaming with automatic continuation
+ * Enhanced streaming with automatic continuation
+ * Intelligently handles both single-shot generation and multi-turn conversations
  */
 export async function* chatStreamWithContinuation(
     messages: Array<{ role: "user" | "model"; text: string }>,
@@ -361,17 +186,42 @@ export async function* chatStreamWithContinuation(
         model?: string;
         temperature?: number;
         maxContinuations?: number;
+        timeoutMs?: number; // Max time for entire generation
     }
 ): AsyncGenerator<{ type: 'chunk' | 'status'; data: any }, void, unknown> {
     const maxContinuations = options?.maxContinuations ?? 5;
+    const timeoutMs = options?.timeoutMs ?? 300000; // 5 minutes default
     let continuationCount = 0;
     let currentAccumulatedText = "";
     let totalAccumulatedText = "";
+    const startTime = Date.now();
+
+    // Helper to check timeout
+    const isTimedOut = () => {
+        return Date.now() - startTime > timeoutMs;
+    };
+
+    // Detect if this is single-shot generation (1 user message) vs multi-turn chat
+    const isSingleShot = messages.length === 1 && messages[0].role === "user";
+    const originalPrompt = isSingleShot ? messages[0].text : null;
 
     // Work with a mutable copy of messages
     const workingMessages = [...messages];
 
     while (continuationCount <= maxContinuations) {
+        // Check timeout
+        if (isTimedOut()) {
+            yield {
+                type: 'status',
+                data: {
+                    status: 'timeout',
+                    message: `Generation timed out after ${Math.round(timeoutMs / 1000)}s`,
+                    contentLength: totalAccumulatedText.length,
+                }
+            };
+            break;
+        }
+
         if (!rateLimiter.canMakeRequest()) {
             throw new Error("Rate limit exceeded. Please try again later.");
         }
@@ -398,11 +248,17 @@ export async function* chatStreamWithContinuation(
             let usageMetadata: any = null;
 
             for await (const chunk of result.stream) {
-                const text = chunk.text();
-                if (text) {
-                    currentAccumulatedText += text;
-                    totalAccumulatedText += text;
-                    yield { type: 'chunk', data: { chunk: text } };
+                try {
+                    const text = chunk.text();
+                    if (text) {
+                        currentAccumulatedText += text;
+                        totalAccumulatedText += text;
+                        yield { type: 'chunk', data: { chunk: text } };
+                    }
+                } catch (parseError: any) {
+                    console.warn("[Gemini] Failed to parse chunk, skipping:", parseError.message);
+                    // Continue to next chunk instead of breaking
+                    continue;
                 }
 
                 // Track finish reason and usage metadata
@@ -440,11 +296,49 @@ export async function* chatStreamWithContinuation(
                     text: currentAccumulatedText,
                 });
 
-                // Add continuation request
-                workingMessages.push({
-                    role: "user",
-                    text: "Continue from where you just left off. Keep writing naturally without repeating what you already wrote.",
-                });
+                // Smart continuation based on mode
+                if (isSingleShot && originalPrompt) {
+                    // Single-shot mode: Include original prompt + recent context
+                    // This preserves the original intent better
+                    let contextLength = Math.min(totalAccumulatedText.length, 3000);
+                    let contextStart = totalAccumulatedText.length - contextLength;
+
+                    // Try to find a natural break point
+                    const searchStart = Math.max(0, contextStart - 200);
+                    const searchEnd = Math.min(totalAccumulatedText.length, contextStart + 200);
+                    const searchRegion = totalAccumulatedText.substring(searchStart, searchEnd);
+                    const paragraphBreak = searchRegion.lastIndexOf('\n\n');
+
+                    if (paragraphBreak !== -1) {
+                        contextStart = searchStart + paragraphBreak + 2;
+                    }
+
+                    const recentContext = totalAccumulatedText.substring(contextStart);
+
+                    workingMessages.push({
+                        role: "user",
+                        text: `${originalPrompt}
+
+[CONTINUATION REQUEST - The previous response was cut off due to length limits. Continue from where it ended.]
+
+Already generated content (showing last ~${recentContext.length} characters):
+${recentContext}
+
+IMPORTANT INSTRUCTIONS:
+- Continue writing naturally from where the text ended above
+- Do NOT restart or repeat what was already written
+- Do NOT generate placeholder content (like repeated dashes, empty lines, etc.)
+- If you were in the middle of a table, complete it properly with actual content
+- If you were in the middle of a list, continue with actual items
+- Just provide the next meaningful content`
+                    });
+                } else {
+                    // Multi-turn chat mode: Simple continuation
+                    workingMessages.push({
+                        role: "user",
+                        text: "Continue from where you just left off. Keep writing naturally without repeating what you already wrote.",
+                    });
+                }
 
                 currentAccumulatedText = ""; // Reset for next iteration
 
@@ -466,6 +360,21 @@ export async function* chatStreamWithContinuation(
             }
         } catch (error: any) {
             console.error("Gemini chat stream error:", error);
+
+            // If we have some content, yield it and break gracefully
+            if (totalAccumulatedText.length > 0) {
+                yield {
+                    type: 'status',
+                    data: {
+                        status: 'error_with_partial_content',
+                        message: 'Stream encountered an error but partial content was generated',
+                        error: error.message,
+                        contentLength: totalAccumulatedText.length,
+                    }
+                };
+                break;
+            }
+
             throw new Error(error.message || "Failed to stream chat response");
         }
     }
@@ -482,15 +391,16 @@ export async function* chatStreamWithContinuation(
 }
 
 /**
- * Chat with context (multi-turn conversation)
+ * Generate an outline/structure for long-form content
+ * This breaks down a complex request into manageable sections
  */
-export async function chat(
-    messages: Array<{ role: "user" | "model"; text: string }>,
+export async function generateOutline(
+    prompt: string,
     options?: {
         model?: string;
         temperature?: number;
     }
-): Promise<string> {
+): Promise<Array<{ title: string; description: string; estimatedLength: number }>> {
     if (!rateLimiter.canMakeRequest()) {
         throw new Error("Rate limit exceeded. Please try again later.");
     }
@@ -499,80 +409,185 @@ export async function chat(
         const model = getModel(options?.model);
         rateLimiter.recordRequest();
 
-        const chat = model.startChat({
+        const outlinePrompt = `Analyze this content request and create a detailed outline with sections.
+
+User Request: ${prompt}
+
+Create a structured outline that breaks this into logical sections. For each section, provide:
+1. A clear title
+2. A brief description of what it should cover
+3. Estimated minimum word count (be generous - aim for detailed, comprehensive content)
+
+Return ONLY a JSON array in this exact format (no markdown, no code blocks, just the JSON):
+[
+  {
+    "title": "Section Title",
+    "description": "What this section covers",
+    "estimatedLength": 800
+  }
+]
+
+IMPORTANT:
+- Create 5-10 sections for comprehensive coverage
+- Each section should be substantial (minimum 500 words each)
+- Estimated lengths should sum to at least 5000 words for detailed content
+- Be specific with descriptions to guide content generation`;
+
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: outlinePrompt }] }],
             generationConfig: {
-                temperature: options?.temperature ?? 0.7,
-                maxOutputTokens: 8192,
+                temperature: options?.temperature ?? 0.3, // Lower temperature for structured output
+                maxOutputTokens: 2048,
             },
-            history: messages.slice(0, -1).map((msg) => ({
-                role: msg.role,
-                parts: [{ text: msg.text }],
-            })),
         });
 
-        const lastMessage = messages[messages.length - 1];
-        const result = await chat.sendMessage(lastMessage.text);
-        return result.response.text();
+        const text = result.response.text();
+
+        // Extract JSON from response (handle cases where AI adds markdown code blocks)
+        let jsonText = text.trim();
+        if (jsonText.startsWith('```')) {
+            // Remove markdown code block markers
+            jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        }
+
+        const outline = JSON.parse(jsonText);
+
+        if (!Array.isArray(outline) || outline.length === 0) {
+            throw new Error("Invalid outline format received");
+        }
+
+        console.log(`[Gemini] Generated outline with ${outline.length} sections`);
+
+        return outline;
     } catch (error: any) {
-        console.error("Gemini chat error:", error);
-        throw new Error(error.message || "Failed to chat with Gemini API");
+        console.error("Gemini outline generation error:", error);
+        throw new Error(error.message || "Failed to generate outline");
     }
 }
 
 /**
- * Chat with streaming response
+ * Generate long-form content by breaking it into chunks/sections
+ * This prevents AI from compacting content to fit in one response
  */
-export async function* chatStream(
-    messages: Array<{ role: "user" | "model"; text: string }>,
+export async function* generateLongContentInChunks(
+    prompt: string,
     options?: {
         model?: string;
         temperature?: number;
+        maxContinuations?: number;
     }
-): AsyncGenerator<string, void, unknown> {
-    if (!rateLimiter.canMakeRequest()) {
-        throw new Error("Rate limit exceeded. Please try again later.");
-    }
-
+): AsyncGenerator<{ type: 'outline' | 'section_start' | 'chunk' | 'section_done' | 'all_done' | 'status'; data: any }, void, unknown> {
     try {
-        const model = getModel(options?.model);
-        rateLimiter.recordRequest();
+        // Step 1: Generate outline
+        yield {
+            type: 'status',
+            data: { status: 'generating_outline', message: 'Analyzing request and creating outline...' }
+        };
 
-        const chat = model.startChat({
-            generationConfig: {
-                temperature: options?.temperature ?? 0.7,
-                maxOutputTokens: 8192,
-            },
-            history: messages.slice(0, -1).map((msg) => ({
-                role: msg.role,
-                parts: [{ text: msg.text }],
-            })),
+        const outline = await generateOutline(prompt, {
+            model: options?.model,
+            temperature: options?.temperature,
         });
 
-        const lastMessage = messages[messages.length - 1];
-        const result = await chat.sendMessageStream(lastMessage.text);
+        yield {
+            type: 'outline',
+            data: { sections: outline }
+        };
 
-        for await (const chunk of result.stream) {
-            const chunkText = chunk.text();
-            if (chunkText) {
-                yield chunkText;
+        // Step 2: Generate each section
+        const totalSections = outline.length;
+
+        for (let i = 0; i < outline.length; i++) {
+            const section = outline[i];
+
+            yield {
+                type: 'section_start',
+                data: {
+                    section: {
+                        title: section.title,
+                        description: section.description,
+                        index: i,
+                        total: totalSections,
+                    }
+                }
+            };
+
+            // Create focused prompt for this section
+            const sectionPrompt = `Original request: ${prompt}
+
+You are writing section ${i + 1}/${totalSections} of a comprehensive document.
+
+OUTLINE CONTEXT (for reference only):
+${outline.map((s, idx) => `${idx + 1}. ${s.title}${idx === i ? ' ← YOU ARE WRITING THIS SECTION' : ''}`).join('\n')}
+
+CURRENT SECTION TO WRITE:
+Title: ${section.title}
+Description: ${section.description}
+Target length: AT LEAST ${section.estimatedLength} words
+
+CRITICAL INSTRUCTIONS:
+- Write ONLY this section ("${section.title}"), nothing else
+- Write in COMPLETE detail - do NOT summarize or abbreviate
+- This section must be AT LEAST ${section.estimatedLength} words
+- Use proper markdown formatting (headings, lists, paragraphs, bold, italic)
+- Start with a heading: ## ${section.title}
+- ${i === 0 ? 'This is the first section - provide a strong introduction' : 'Continue naturally from the previous sections (context is implied)'}
+- Write comprehensive, detailed content with examples where relevant
+- Do NOT write other sections or summarize - focus ONLY on "${section.title}"
+
+Begin writing this section now:`;
+
+            // Stream this section with continuation support
+            let sectionContent = "";
+
+            for await (const event of generateTextStreamWithContinuation(sectionPrompt, {
+                model: options?.model,
+                temperature: options?.temperature ?? 0.7,
+                maxContinuations: options?.maxContinuations ?? 3,
+            })) {
+                if (event.type === 'chunk') {
+                    sectionContent += event.data.chunk;
+                    yield {
+                        type: 'chunk',
+                        data: { chunk: event.data.chunk }
+                    };
+                } else if (event.type === 'status') {
+                    // Pass through continuation status
+                    yield event;
+                }
+            }
+
+            yield {
+                type: 'section_done',
+                data: {
+                    section: {
+                        title: section.title,
+                        index: i,
+                        total: totalSections,
+                        contentLength: sectionContent.length,
+                    }
+                }
+            };
+
+            // Small delay between sections
+            if (i < outline.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
         }
+
+        // Step 3: All done
+        yield {
+            type: 'all_done',
+            data: {
+                totalSections,
+                message: 'All sections completed successfully'
+            }
+        };
+
     } catch (error: any) {
-        console.error("Gemini chat stream error:", error);
-        throw new Error(error.message || "Failed to stream chat response");
+        console.error("Gemini chunk generation error:", error);
+        throw new Error(error.message || "Failed to generate content in chunks");
     }
 }
 
-/**
- * Get rate limiter statistics
- */
-export function getRateLimitStats() {
-    return rateLimiter.getStats();
-}
 
-/**
- * Check if Gemini API is configured
- */
-export function isGeminiConfigured(): boolean {
-    return !!genAI;
-}
